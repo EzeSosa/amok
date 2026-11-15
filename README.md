@@ -3,7 +3,7 @@
 Editor de texto mínimo para programar con agentes. Sin extensiones ni LSP.
 Electron + un `<textarea>` por pestaña + `marked` para ver los `.md` formateados.
 Colorea Java, Python, TypeScript/JavaScript y shell con un tokenizador propio (`renderer/highlight.js`).
-Temas: Oscuro, Darcula y Claro (Ctrl+Shift+P → "Cambiar tema").
+Temas: Oscuro, Darcula y Claro (Ctrl+Shift+P → "Cambiar tema"). Fuente: JetBrains Mono (`@fontsource/jetbrains-mono`, local).
 
 ## Uso
 

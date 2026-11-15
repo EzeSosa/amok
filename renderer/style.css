@@ -39,7 +39,7 @@
   --x-b: #56b6c2;   /* builtins */
   --x-o: #d19a66;   /* CONSTANTES */
 
-  --mono: "Cascadia Mono", "Cascadia Code", Consolas, monospace;
+  --mono: "JetBrains Mono", "Cascadia Mono", "Cascadia Code", Consolas, monospace;
   --ui: "Segoe UI", system-ui, sans-serif;
   --fs: 14px;
   --lh: 21px;

@@ -286,6 +286,13 @@ function renderHl(t) {
 
 window.addEventListener('resize', () => renderHl(active));
 
+// La fuente del editor carga después que el CSS: volver a medir el ancho de carácter.
+document.fonts.addEventListener('loadingdone', () => {
+  cwCache = null;
+  renderHl(active);
+  if (active) positionMark(active);
+});
+
 // ---------- pestañas ----------
 
 function makeTab(path, data) {
