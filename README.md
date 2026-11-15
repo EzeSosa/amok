@@ -1,5 +1,7 @@
 # liviano
 
+*[Read in English](README.en.md)*
+
 Editor de texto mínimo para programar con agentes. Sin extensiones ni LSP.
 Electron + un `<textarea>` por pestaña + `marked` para ver los `.md` formateados.
 Colorea Java, Python, TypeScript/JavaScript y shell con un tokenizador propio (`renderer/highlight.js`).
@@ -13,7 +15,7 @@ lo descarga solo si no lo tenés.
 ### Linux (Ubuntu 22.04 en adelante)
 
 ```
-git clone <url-del-repo> ~/liviano
+git clone https://github.com/EzeSosa/liviano.git ~/liviano
 bash ~/liviano/scripts/install-linux.sh
 liviano .
 ```
@@ -34,7 +36,7 @@ Si no abre: `LIVIANO_FOREGROUND=1 liviano .` muestra los errores (en segundo pla
 ### Windows
 
 ```
-git clone <url-del-repo> C:\Users\<vos>\liviano
+git clone https://github.com/EzeSosa/liviano.git C:\Users\<vos>\liviano
 cd C:\Users\<vos>\liviano
 npm install
 ```
