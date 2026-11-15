@@ -90,6 +90,8 @@ function persist(now = false) {
     if (!root) return;
     api.updateState({
       fontSize,
+      theme,
+      zoom: zoomFactor,
       treeVisible: tree.visible,
       treeWidth: tree.width,
       sessions: {
@@ -161,6 +163,7 @@ function updateUI() {
   let mode = '';
   if (active && (active.virtual || active.mode === 'diff')) mode = 'DIFF vs HEAD · lectura';
   else if (active && active.md) mode = active.mode === 'preview' ? 'MD · lectura' : 'MD · edición';
+  else if (active && active.lang) mode = LANGS[active.lang].name;
   $('#st-mode').textContent = mode;
   const m = $('#st-msg');
   let warn = '';
@@ -195,11 +198,93 @@ function applyFont() {
   document.documentElement.style.setProperty('--lh', `${lineHeight()}px`);
 }
 
-function zoom(d) {
+// Tamaño de la fuente del editor (independiente del zoom general).
+function fontStep(d) {
   fontSize = d === 0 ? 14 : Math.max(9, Math.min(32, fontSize + d));
   applyFont();
+  renderHl(active);
   persist();
 }
+
+// Zoom de toda la interfaz (Ctrl +/-/0 y Ctrl+rueda).
+const ZOOMS = [0.67, 0.75, 0.8, 0.9, 1, 1.1, 1.25, 1.5, 1.75, 2, 2.5];
+let zoomFactor = 1;
+
+function uiZoom(d) {
+  if (d === 0) {
+    zoomFactor = 1;
+  } else {
+    let i = 0;
+    for (let k = 1; k < ZOOMS.length; k++) if (Math.abs(ZOOMS[k] - zoomFactor) < Math.abs(ZOOMS[i] - zoomFactor)) i = k;
+    zoomFactor = ZOOMS[Math.max(0, Math.min(ZOOMS.length - 1, i + d))];
+  }
+  api.setZoom(zoomFactor);
+  flash(`Zoom ${Math.round(zoomFactor * 100)}%`);
+  persist();
+}
+
+let wheelAt = 0;
+window.addEventListener('wheel', (e) => {
+  if (!e.ctrlKey) return;
+  e.preventDefault();
+  const now = performance.now();
+  if (now - wheelAt < 80 || !e.deltaY) return; // un paso por "click" de rueda, aunque el touchpad mande muchos eventos
+  wheelAt = now;
+  uiZoom(e.deltaY < 0 ? 1 : -1);
+}, { passive: false });
+
+// ---------- temas ----------
+
+const THEMES = [['oscuro', 'Oscuro'], ['darcula', 'Darcula (JetBrains)'], ['claro', 'Claro']];
+let theme = 'oscuro';
+
+function applyTheme(name) {
+  theme = THEMES.some(([id]) => id === name) ? name : 'oscuro';
+  document.documentElement.dataset.theme = theme;
+}
+
+function openThemes() {
+  openPalette({
+    placeholder: 'Tema…',
+    itemClass: 'cmd',
+    filter: (q) => THEMES.filter(([, label]) => label.toLowerCase().includes(q.toLowerCase().trim())),
+    render: ([id, label]) => `<span>${esc(label)}</span><span class="k">${id === theme ? 'actual' : ''}</span>`,
+    pick: (it) => {
+      if (!it) return;
+      applyTheme(it[0]);
+      api.setTheme(theme);
+      persist();
+    },
+  });
+}
+
+// ---------- resaltado en el editor ----------
+// El textarea tiene texto transparente; debajo hay un <pre> que dibuja solo las líneas visibles coloreadas.
+
+const MAX_HL_SIZE = 500 * 1024;
+
+function renderHl(t) {
+  if (!t || !t.lang || t.mode !== 'edit' || t !== active) return;
+  const ta = t.ta;
+  const v = ta.value;
+  if (t.hlDirty) {
+    t.tok = tokenize(t.lang, v);
+    const starts = [0];
+    for (let i = v.indexOf('\n'); i !== -1; i = v.indexOf('\n', i + 1)) starts.push(i + 1);
+    t.lineStarts = starts;
+    t.hlDirty = false;
+  }
+  const lh = lineHeight();
+  const n = t.lineStarts.length;
+  const first = Math.max(0, Math.min(n - 1, Math.floor(ta.scrollTop / lh) - 3));
+  const last = Math.min(n - 1, first + Math.ceil(ta.clientHeight / lh) + 6);
+  const from = t.lineStarts[first];
+  const to = last + 1 < n ? t.lineStarts[last + 1] : v.length;
+  t.hlCode.innerHTML = hlRange(v, t.tok, from, to);
+  t.hlCode.style.transform = `translate(${-ta.scrollLeft}px, ${first * lh - ta.scrollTop}px)`;
+}
+
+window.addEventListener('resize', () => renderHl(active));
 
 // ---------- pestañas ----------
 
@@ -210,6 +295,11 @@ function makeTab(path, data) {
   ta.spellcheck = false;
   ta.setAttribute('wrap', 'off');
   ta.value = data.content;
+  const ed = el('div', 'ed');
+  const hlPre = el('pre', 'hl');
+  const hlCode = el('code');
+  hlPre.append(hlCode);
+  ed.append(hlPre, ta);
   const preview = el('div', 'preview markdown');
   preview.tabIndex = -1;
   const diffview = el('div', 'diffview');
@@ -217,18 +307,25 @@ function makeTab(path, data) {
   wireDiff(diffview);
   const mark = el('div', 'findmark');
   mark.hidden = true;
-  pane.append(gutter, ta, preview, diffview, mark);
+  pane.append(gutter, ed, preview, diffview, mark);
   $('#editors').append(pane);
 
+  const lang = data.content.length <= MAX_HL_SIZE ? langFor(path) : null;
+  if (lang) pane.classList.add('hl-on');
   const t = {
     path, pane, gutter, ta, preview, diffview, mark, markPos: null,
+    lang, hlCode, hlDirty: true, tok: null, lineStarts: null,
     saved: data.content, eol: data.eol, bom: data.bom,
     lines: 0, dirty: false, conflict: false, deleted: false,
     md: isMd(path), mode: 'edit', previewStale: true,
     indent: detectIndent(data.content, path),
   };
-  ta.addEventListener('input', () => { refreshGutter(t); markDirty(t); t.previewStale = true; hideMark(t); });
-  ta.addEventListener('scroll', () => { gutter.scrollTop = ta.scrollTop; positionMark(t); });
+  ta.addEventListener('input', () => {
+    refreshGutter(t); markDirty(t); t.previewStale = true; hideMark(t);
+    t.hlDirty = true;
+    renderHl(t);
+  });
+  ta.addEventListener('scroll', () => { gutter.scrollTop = ta.scrollTop; positionMark(t); renderHl(t); });
   ta.addEventListener('keydown', (e) => editorKey(e, t));
   for (const ev of ['keyup', 'mouseup', 'focus']) ta.addEventListener(ev, updatePos);
   preview.addEventListener('click', (e) => previewClick(e, t));
@@ -276,6 +373,7 @@ function activate(t) {
     t.pane.classList.add('active');
     if (t.mode === 'preview' && t.previewStale) renderPreview(t);
     if (t.mode === 'diff') refreshDiffView(t);
+    renderHl(t);
     focusEditor();
   }
   revealActiveInTree();
@@ -388,6 +486,8 @@ function replaceContent(t, content) {
   ta.scrollLeft = sl;
   refreshGutter(t);
   t.previewStale = true;
+  t.hlDirty = true;
+  renderHl(t);
   if (t.mode === 'preview') {
     const ps = t.preview.scrollTop;
     renderPreview(t);
@@ -543,7 +643,7 @@ function setMode(t, mode) {
     const to = mode === 'preview' ? t.preview : t.ta;
     to.scrollTop = (t.scrollRatio || 0) * (to.scrollHeight - to.clientHeight);
   }
-  if (mode === 'edit') t.gutter.scrollTop = t.ta.scrollTop;
+  if (mode === 'edit') { t.gutter.scrollTop = t.ta.scrollTop; renderHl(t); }
   if (t === active) { focusEditor(); updateUI(); }
 }
 
@@ -560,6 +660,11 @@ function renderPreview(t) {
     const src = img.getAttribute('src');
     if (/^([a-z][a-z0-9+.-]*:|\/\/)/i.test(src)) continue;
     try { img.src = fileUrl(joinPath(dir, decodeURI(src))); } catch {}
+  }
+  for (const code of t.preview.querySelectorAll('pre code[class*="language-"]')) {
+    const m = /language-([\w+-]+)/.exec(code.className);
+    const lang = m && FENCE_LANG[m[1].toLowerCase()];
+    if (lang) code.innerHTML = hlText(lang, code.textContent);
   }
   t.previewStale = false;
 }
@@ -953,8 +1058,11 @@ function positionMark(t) {
   const { ta, mark } = t;
   const cw = charWidth();
   const lh = lineHeight();
-  mark.style.left = `${ta.offsetLeft + 4 + t.markPos.c0 * cw - ta.scrollLeft}px`;
-  mark.style.top = `${ta.offsetTop + 8 + t.markPos.line * lh - ta.scrollTop}px`;
+  // el textarea está dentro de .ed: posición relativa al pane
+  const left = ta.offsetLeft + ta.offsetParent.offsetLeft;
+  const top = ta.offsetTop + ta.offsetParent.offsetTop;
+  mark.style.left = `${left + 4 + t.markPos.c0 * cw - ta.scrollLeft}px`;
+  mark.style.top = `${top + 8 + t.markPos.line * lh - ta.scrollTop}px`;
   mark.style.width = `${Math.max(2, (t.markPos.c1 - t.markPos.c0) * cw)}px`;
   mark.style.height = `${lh}px`;
   mark.hidden = false;
@@ -1034,8 +1142,13 @@ const COMMANDS = [
   ['Cerrar todas las pestañas', '', () => { for (const t of [...tabs]) closeTab(t); }],
   ['Abrir carpeta', 'Ctrl+O', openFolder],
   ['Reindexar archivos', '', async () => { fileList = await api.listFiles(); renderTree(); flash(`${fileList.length} archivos`); }],
-  ['Agrandar fuente', 'Ctrl++', () => zoom(1)],
-  ['Achicar fuente', 'Ctrl+-', () => zoom(-1)],
+  ['Zoom: acercar', 'Ctrl++ · Ctrl+rueda', () => uiZoom(1)],
+  ['Zoom: alejar', 'Ctrl+-', () => uiZoom(-1)],
+  ['Zoom: 100%', 'Ctrl+0', () => uiZoom(0)],
+  ['Cambiar tema…', '', openThemes],
+  ['Fuente del editor: agrandar', '', () => fontStep(1)],
+  ['Fuente del editor: achicar', '', () => fontStep(-1)],
+  ['Fuente del editor: tamaño por defecto', '', () => fontStep(0)],
   ['DevTools', 'F12', () => api.toggleDevtools()],
 ];
 
@@ -1095,9 +1208,9 @@ window.addEventListener('keydown', (e) => {
   else if (ctrl && e.key === 'Tab') cycle(shift ? -1 : 1);
   else if (ctrl && e.key === 'PageDown') cycle(1);
   else if (ctrl && e.key === 'PageUp') cycle(-1);
-  else if (ctrl && (e.key === '+' || e.key === '=')) zoom(1);
-  else if (ctrl && e.key === '-') zoom(-1);
-  else if (ctrl && e.key === '0') zoom(0);
+  else if (ctrl && (e.key === '+' || e.key === '=' || c === 'NumpadAdd')) uiZoom(1);
+  else if (ctrl && (e.key === '-' || c === 'NumpadSubtract')) uiZoom(-1);
+  else if (ctrl && (e.key === '0' || c === 'Numpad0')) uiZoom(0);
   else if (e.key === 'F8') nextResult(shift ? -1 : 1);
   else if (e.key === 'F12') api.toggleDevtools();
   else if (e.key === 'Escape') handled = closeOverlays();
@@ -1122,6 +1235,8 @@ api.onRootChanged((r) => setRoot(r));
 window.addEventListener('DOMContentLoaded', async () => {
   const st = await api.getState();
   if (st.fontSize) fontSize = st.fontSize;
+  applyTheme(st.theme);
+  if (st.zoom) { zoomFactor = st.zoom; api.setZoom(zoomFactor); }
   if (st.treeVisible === false) tree.visible = false;
   if (st.treeWidth) tree.width = st.treeWidth;
   applyTreeLayout();

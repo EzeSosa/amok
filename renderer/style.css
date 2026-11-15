@@ -1,3 +1,5 @@
+/* ---------- temas ----------
+   Cada tema define los mismos tokens. Interfaz: --bg..--overlay. Sintaxis: --x-*. */
 :root {
   --bg: #1b1d22;
   --bg2: #23262d;
@@ -7,12 +9,120 @@
   --accent: #6cb6ff;
   --warn: #e5c07b;
   --err: #ef6b73;
+  --add: #7ec699;
   --sel: #2f4a6e;
+  --sel-alpha: rgba(62, 110, 170, .5);
   --hl: #5a4a1a;
+  --hl-fg: #fff;
+  --side: #17191d;
+  --hover: #1f2227;
+  --sel-inactive: #262a31;
+  --gutter-fg: #4d535e;
+  --scroll: #3a3f48;
+  --dir-changed: #c9b27a;
+  --add-bg: rgba(80, 170, 110, .15);
+  --del-bg: rgba(230, 90, 100, .15);
+  --hunk-bg: rgba(108, 182, 255, .07);
+  --find-bg: rgba(229, 192, 123, .3);
+  --shadow: rgba(0, 0, 0, .45);
+  --overlay: rgba(0, 0, 0, .35);
+
+  --x-k: #c678dd;   /* palabras clave */
+  --x-s: #98c379;   /* strings */
+  --x-c: #6b7380;   /* comentarios */
+  --x-n: #d19a66;   /* números */
+  --x-l: #d19a66;   /* true/false/null */
+  --x-t: #e5c07b;   /* tipos y clases */
+  --x-f: #61afef;   /* funciones */
+  --x-a: #56b6c2;   /* anotaciones / decoradores */
+  --x-v: #e06c75;   /* variables de shell */
+  --x-b: #56b6c2;   /* builtins */
+  --x-o: #d19a66;   /* CONSTANTES */
+
   --mono: "Cascadia Mono", "Cascadia Code", Consolas, monospace;
   --ui: "Segoe UI", system-ui, sans-serif;
   --fs: 14px;
   --lh: 21px;
+}
+
+:root[data-theme="darcula"] {
+  --bg: #2b2b2b;
+  --bg2: #3c3f41;
+  --bg3: #4b4f52;
+  --fg: #a9b7c6;
+  --dim: #808080;
+  --accent: #589df6;
+  --warn: #d6bf55;
+  --err: #ff6b68;
+  --add: #6a9955;
+  --sel: #214283;
+  --sel-alpha: rgba(33, 66, 131, .75);
+  --hl: #32593d;
+  --hl-fg: #fff;
+  --side: #313335;
+  --hover: #393b3d;
+  --sel-inactive: #45494a;
+  --gutter-fg: #606366;
+  --scroll: #4e5254;
+  --dir-changed: #b8a76e;
+  --add-bg: rgba(98, 151, 85, .2);
+  --del-bg: rgba(200, 80, 80, .2);
+  --hunk-bg: rgba(88, 157, 246, .08);
+  --find-bg: rgba(50, 89, 61, .8);
+  --shadow: rgba(0, 0, 0, .5);
+  --overlay: rgba(0, 0, 0, .35);
+
+  --x-k: #cc7832;
+  --x-s: #6a8759;
+  --x-c: #808080;
+  --x-n: #6897bb;
+  --x-l: #cc7832;
+  --x-t: #b9bcd1;
+  --x-f: #ffc66d;
+  --x-a: #bbb529;
+  --x-v: #9876aa;
+  --x-b: #8888c6;
+  --x-o: #9876aa;
+}
+
+:root[data-theme="claro"] {
+  --bg: #ffffff;
+  --bg2: #f2f3f5;
+  --bg3: #dfe1e5;
+  --fg: #1f2328;
+  --dim: #6e7781;
+  --accent: #2f6fd6;
+  --warn: #9a6700;
+  --err: #cf222e;
+  --add: #1a7f37;
+  --sel: #cfe0fa;
+  --sel-alpha: rgba(120, 170, 240, .4);
+  --hl: #fff1a8;
+  --hl-fg: #1f2328;
+  --side: #f7f8fa;
+  --hover: #eceef1;
+  --sel-inactive: #e4e7ec;
+  --gutter-fg: #a0a7b0;
+  --scroll: #c9ced6;
+  --dir-changed: #9a6700;
+  --add-bg: rgba(46, 160, 67, .13);
+  --del-bg: rgba(207, 34, 46, .1);
+  --hunk-bg: rgba(47, 111, 214, .07);
+  --find-bg: rgba(255, 200, 0, .35);
+  --shadow: rgba(0, 0, 0, .18);
+  --overlay: rgba(0, 0, 0, .15);
+
+  --x-k: #0033b3;
+  --x-s: #067d17;
+  --x-c: #8c8c8c;
+  --x-n: #1750eb;
+  --x-l: #0033b3;
+  --x-t: #000000;
+  --x-f: #00627a;
+  --x-a: #9e880d;
+  --x-v: #871094;
+  --x-b: #0033b3;
+  --x-o: #871094;
 }
 
 * { box-sizing: border-box; }
@@ -73,42 +183,77 @@ body {
 .keys td:first-child { text-align: right; font-family: var(--mono); color: var(--accent); }
 
 #editors { position: absolute; inset: 0; }
-.pane { position: absolute; inset: 0; display: flex; }
+.pane { position: absolute; inset: 0; display: flex; overflow: hidden; }
 .pane:not(.active) { display: none; }
 .gutter {
   flex: none;
   min-width: 48px;
   padding: 8px 10px 60px 8px;
   text-align: right;
-  color: #4d535e;
+  color: var(--gutter-fg);
   font: var(--fs)/var(--lh) var(--mono);
   white-space: pre;
   overflow: hidden;
   user-select: none;
 }
-.pane textarea {
-  flex: 1;
+.ed { flex: 1; position: relative; min-width: 0; }
+.ed textarea, .ed .hl {
+  position: absolute;
+  inset: 0;
   margin: 0;
-  border: 0;
-  outline: 0;
-  resize: none;
   padding: 8px 12px 8px 4px;
-  background: var(--bg);
-  color: var(--fg);
   font: var(--fs)/var(--lh) var(--mono);
   tab-size: 4;
   white-space: pre;
+}
+.ed textarea {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  outline: 0;
+  resize: none;
+  background: var(--bg);
+  color: var(--fg);
   overflow: auto;
   caret-color: var(--accent);
 }
-.pane textarea::selection { background: var(--sel); }
+.ed textarea::selection { background: var(--sel); }
+.ed .hl { display: none; overflow: hidden; pointer-events: none; color: var(--fg); background: var(--bg); }
+.ed .hl code { display: block; font: inherit; will-change: transform; }
+/* Con resaltado: el textarea solo aporta cursor y selección; el texto lo dibuja .hl debajo. */
+.pane.hl-on .ed .hl { display: block; }
+.pane.hl-on .ed textarea { background: transparent; color: transparent; }
+.pane.hl-on .ed textarea::selection { background: var(--sel-alpha); }
+
 .pane .preview { display: none; }
-.pane.preview-mode .gutter, .pane.preview-mode textarea { display: none; }
+.pane.preview-mode .gutter, .pane.preview-mode .ed { display: none; }
 .pane.preview-mode .preview { display: block; flex: 1; overflow: auto; }
+.preview:focus { outline: none; }
+
+.findmark {
+  position: absolute;
+  background: var(--find-bg);
+  outline: 1px solid var(--warn);
+  border-radius: 2px;
+  pointer-events: none;
+}
 
 ::-webkit-scrollbar { width: 12px; height: 12px; }
-::-webkit-scrollbar-thumb { background: #3a3f48; border: 3px solid var(--bg); border-radius: 8px; }
+::-webkit-scrollbar-thumb { background: var(--scroll); border: 3px solid var(--bg); border-radius: 8px; }
 ::-webkit-scrollbar-corner { background: var(--bg); }
+
+/* ---------- sintaxis (editor, markdown y diffs) ---------- */
+.x-k { color: var(--x-k); }
+.x-s { color: var(--x-s); }
+.x-c { color: var(--x-c); font-style: italic; }
+.x-n { color: var(--x-n); }
+.x-l { color: var(--x-l); }
+.x-t { color: var(--x-t); }
+.x-f { color: var(--x-f); }
+.x-a { color: var(--x-a); }
+.x-v { color: var(--x-v); }
+.x-b { color: var(--x-b); }
+.x-o { color: var(--x-o); font-style: italic; }
 
 /* ---------- markdown ---------- */
 .markdown {
@@ -146,7 +291,7 @@ body {
   position: absolute; top: 40px; right: 24px; z-index: 5;
   display: flex; align-items: center; gap: 8px;
   background: var(--bg2); padding: 6px 8px; border-radius: 6px;
-  box-shadow: 0 4px 16px rgba(0,0,0,.4);
+  box-shadow: 0 4px 16px var(--shadow);
 }
 #find-input { width: 300px; }
 #find-count { color: var(--dim); min-width: 54px; }
@@ -179,7 +324,7 @@ input:focus { border-color: var(--accent); }
 /* ---------- overlays ---------- */
 .overlay {
   position: fixed; inset: 0; z-index: 10;
-  background: rgba(0,0,0,.35);
+  background: var(--overlay);
   display: flex; justify-content: center; align-items: flex-start;
   padding-top: 8vh;
 }
@@ -187,7 +332,7 @@ input:focus { border-color: var(--accent); }
   width: min(640px, 92vw);
   background: var(--bg2);
   border-radius: 8px;
-  box-shadow: 0 10px 40px rgba(0,0,0,.5);
+  box-shadow: 0 10px 40px var(--shadow);
   padding: 8px;
   display: flex; flex-direction: column; gap: 6px;
   max-height: 80vh;
@@ -228,17 +373,7 @@ input:focus { border-color: var(--accent); }
 .ghead .n { color: var(--dim); margin-left: 6px; }
 .match { font: 12.5px var(--mono); padding-left: 18px; }
 .match .ln { color: var(--dim); display: inline-block; min-width: 44px; text-align: right; margin-right: 12px; }
-.match mark { background: var(--hl); color: #fff; border-radius: 2px; }
-
-.pane { overflow: hidden; }
-.preview:focus { outline: none; }
-.findmark {
-  position: absolute;
-  background: rgba(229, 192, 123, .3);
-  outline: 1px solid var(--warn);
-  border-radius: 2px;
-  pointer-events: none;
-}
+.match mark { background: var(--hl); color: var(--hl-fg); border-radius: 2px; }
 
 /* ---------- layout con árbol ---------- */
 #workspace { flex: 1; display: flex; min-height: 0; }
@@ -248,10 +383,10 @@ input:focus { border-color: var(--accent); }
   width: 260px;
   display: flex;
   flex-direction: column;
-  background: #17191d;
+  background: var(--side);
   min-width: 0;
 }
-#splitter { flex: none; width: 4px; cursor: col-resize; background: #17191d; }
+#splitter { flex: none; width: 4px; cursor: col-resize; background: var(--side); }
 #splitter:hover { background: var(--bg3); }
 #tree-title {
   padding: 9px 12px 7px;
@@ -273,9 +408,9 @@ input:focus { border-color: var(--accent); }
   white-space: nowrap;
   cursor: pointer;
 }
-.trow:hover { background: #1f2227; }
+.trow:hover { background: var(--hover); }
 .trow.cur { background: var(--bg3); }
-.trow.sel { background: #262a31; }
+.trow.sel { background: var(--sel-inactive); }
 #tree:focus .trow.sel { background: var(--sel); box-shadow: inset 0 0 0 1px var(--accent); }
 .trow .tw { width: 14px; flex: none; color: var(--dim); font-size: 10px; text-align: center; }
 .trow.dir .tw::before { content: "▸"; }
@@ -286,12 +421,11 @@ input:focus { border-color: var(--accent); }
 .trow.g-A, .trow.g-U { color: var(--add); }
 .trow.g-C { color: var(--err); }
 .trow.g-R { color: var(--accent); }
-.trow.g-dir .tn { color: #c9b27a; }
+.trow.g-dir .tn { color: var(--dir-changed); }
 
 /* ---------- diff ---------- */
-:root { --add: #7ec699; }
 .diffview { display: none; flex: 1; overflow: auto; outline: none; padding-bottom: 60px; font: 13px/1.5 var(--mono); }
-.pane.diff-mode .gutter, .pane.diff-mode textarea, .pane.diff-mode .preview { display: none; }
+.pane.diff-mode .gutter, .pane.diff-mode .ed, .pane.diff-mode .preview { display: none; }
 .pane.diff-mode .diffview, .pane.review .diffview { display: block; }
 .dsum { padding: 8px 14px; color: var(--dim); font: 12px var(--ui); }
 .dnote { padding: 8px 14px; color: var(--dim); font-family: var(--ui); }
@@ -317,13 +451,13 @@ input:focus { border-color: var(--accent); }
 .stat .d { color: var(--err); }
 .dtab { border-collapse: collapse; min-width: 100%; tab-size: 4; }
 .dtab td { padding: 0 8px; white-space: pre; vertical-align: top; }
-.dtab .lo, .dtab .ln { color: #4d535e; text-align: right; user-select: none; width: 1%; min-width: 44px; }
-.dtab tr.add { background: rgba(80, 170, 110, .15); }
-.dtab tr.del { background: rgba(230, 90, 100, .15); }
+.dtab .lo, .dtab .ln { color: var(--gutter-fg); text-align: right; user-select: none; width: 1%; min-width: 44px; }
+.dtab tr.add { background: var(--add-bg); }
+.dtab tr.del { background: var(--del-bg); }
 .dtab tr.add .tx::before { content: "+ "; color: var(--add); }
 .dtab tr.del .tx::before { content: "− "; color: var(--err); }
 .dtab tr.ctx .tx::before { content: "  "; }
-.dtab tr.hunk td { color: var(--dim); background: rgba(108, 182, 255, .07); padding: 3px 8px; }
+.dtab tr.hunk td { color: var(--dim); background: var(--hunk-bg); padding: 3px 8px; }
 .dtab tr.meta td { color: var(--dim); font-style: italic; }
 .badge { font: 11px var(--mono); }
 .st-M { color: var(--warn); }

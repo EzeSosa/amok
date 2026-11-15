@@ -113,11 +113,15 @@ function fillRows(box) {
   const f = box._f;
   if (f.binary) { box.append(el('div', 'dnote', 'Archivo binario o demasiado grande')); return; }
   if (!f.rows.length) { box.append(el('div', 'dnote', f.status === 'R' ? 'Renombrado sin cambios' : 'Sin cambios de contenido')); return; }
+  const lang = langFor(f.path);
   let html = '<table class="dtab"><tbody>';
   for (const r of f.rows) {
     if (r.k === 'hunk') html += `<tr class="hunk" data-n="${r.n}"><td colspan="3">${esc(r.text)}</td></tr>`;
     else if (r.k === 'meta') html += `<tr class="meta"><td></td><td></td><td class="tx">${esc(r.text)}</td></tr>`;
-    else html += `<tr class="${r.k}" data-n="${r.n}"><td class="lo">${r.o ?? ''}</td><td class="ln">${r.k === 'del' ? '' : r.n}</td><td class="tx">${esc(r.text)}</td></tr>`;
+    else {
+      const tx = lang ? hlLine(lang, r.text) : esc(r.text);
+      html += `<tr class="${r.k}" data-n="${r.n}"><td class="lo">${r.o ?? ''}</td><td class="ln">${r.k === 'del' ? '' : r.n}</td><td class="tx">${tx}</td></tr>`;
+    }
   }
   box.insertAdjacentHTML('beforeend', html + '</tbody></table>');
 }

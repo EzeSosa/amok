@@ -351,6 +351,17 @@ ipcMain.handle('shell:open', (_e, url) => {
 
 ipcMain.on('devtools', () => win && win.webContents.toggleDevTools());
 
+// Color de fondo de la ventana por tema (se ve un instante al abrir, antes de que cargue el CSS).
+const THEME_BG = { oscuro: '#1b1d22', darcula: '#2b2b2b', claro: '#ffffff' };
+
+ipcMain.on('zoom:set', (_e, factor) => {
+  if (win && factor >= 0.5 && factor <= 3) win.webContents.setZoomFactor(factor);
+});
+
+ipcMain.on('theme:set', (_e, name) => {
+  if (win && THEME_BG[name]) win.setBackgroundColor(THEME_BG[name]);
+});
+
 ipcMain.on('app:close-confirmed', () => {
   forceClose = true;
   if (win) win.close();
@@ -377,7 +388,7 @@ function createWindow() {
     height: b.height || 800,
     x: b.x,
     y: b.y,
-    backgroundColor: '#1b1d22',
+    backgroundColor: THEME_BG[s.theme] || THEME_BG.oscuro,
     title: 'liviano',
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),

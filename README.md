@@ -1,7 +1,9 @@
 # liviano
 
-Editor de texto mínimo para programar con agentes. Sin resaltado de sintaxis, sin extensiones, sin LSP.
+Editor de texto mínimo para programar con agentes. Sin extensiones ni LSP.
 Electron + un `<textarea>` por pestaña + `marked` para ver los `.md` formateados.
+Colorea Java, Python, TypeScript/JavaScript y shell con un tokenizador propio (`renderer/highlight.js`).
+Temas: Oscuro, Darcula y Claro (Ctrl+Shift+P → "Cambiar tema").
 
 ## Uso
 
@@ -33,7 +35,7 @@ Sin argumento abre la última carpeta usada. Las pestañas abiertas se recuerdan
 | Ctrl+Shift+G | Lista de archivos cambiados; Enter abre su diff |
 | F7 · Shift+F7 (o n / p) | Hunk siguiente / anterior dentro de un diff |
 | Ctrl+Shift+P | Lista de comandos |
-| Ctrl + / − / 0 | Tamaño de fuente |
+| Ctrl + / − / 0 · Ctrl+rueda | Zoom de toda la interfaz |
 
 En el árbol: flechas para moverse, → / ← expanden y colapsan, Enter abre y Esc vuelve al editor.
 Ctrl+N con el foco en el árbol crea el archivo en la carpeta seleccionada. El borde derecho del árbol se arrastra para cambiar el ancho.

@@ -16,6 +16,8 @@ contextBridge.exposeInMainWorld('api', {
   updateState: (patch) => ipcRenderer.send('state:update', patch),
   openExternal: (url) => ipcRenderer.invoke('shell:open', url),
   toggleDevtools: () => ipcRenderer.send('devtools'),
+  setZoom: (factor) => ipcRenderer.send('zoom:set', factor),
+  setTheme: (name) => ipcRenderer.send('theme:set', name),
   confirmClose: () => ipcRenderer.send('app:close-confirmed'),
   onFsChanged: (cb) => ipcRenderer.on('fs:changed', (_e, changes) => cb(changes)),
   onRootChanged: (cb) => ipcRenderer.on('root:changed', (_e, r) => cb(r)),
