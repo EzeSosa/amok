@@ -86,3 +86,7 @@ click en el resto del encabezado colapsa el archivo (los de más de 1500 líneas
   Los archivos se marcan con su estado git: M modificado, U sin trackear, A agregado, R renombrado, C conflicto.
 - La búsqueda respeta `.gitignore` (usa `git ls-files`); fuera de un repo ignora `node_modules`, `dist`, `build`, etc.
 - Conserva los finales de línea (CRLF/LF) y el BOM de cada archivo.
+
+## Licencia
+
+[MIT](LICENSE)

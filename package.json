@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "description": "Editor de texto minimalista para programar con agentes",
   "main": "main.js",
+  "license": "MIT",
   "private": true,
   "scripts": {
     "start": "electron ."

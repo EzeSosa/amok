@@ -90,3 +90,7 @@ Without a shortcut, from Ctrl+Shift+P: "Cambiar tema" (change theme) and "Fuente
   Files are marked with their git status: M modified, U untracked, A added, R renamed, C conflict.
 - Search respects `.gitignore` (it uses `git ls-files`); outside a repo it skips `node_modules`, `dist`, `build`, etc.
 - Line endings (CRLF/LF) and the BOM of each file are preserved.
+
+## License
+
+[MIT](LICENSE)
