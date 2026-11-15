@@ -1,0 +1,16 @@
+{
+  "name": "liviano",
+  "version": "0.1.0",
+  "description": "Editor de texto minimalista para programar con agentes",
+  "main": "main.js",
+  "private": true,
+  "scripts": {
+    "start": "electron ."
+  },
+  "dependencies": {
+    "marked": "^18.2.0"
+  },
+  "devDependencies": {
+    "electron": "^45.3.2"
+  }
+}
