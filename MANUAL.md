@@ -119,9 +119,23 @@ liviano vigila la carpeta todo el tiempo:
 - **Archivo borrado:** te avisa; si guardás con Ctrl+S, lo vuelve a crear.
 - **Archivos nuevos, commits, stage:** el árbol, los estados y los diffs se actualizan solos en alrededor de un segundo.
 
-## 9. Flujo típico
+## 9. Terminal
 
-1. `liviano .` en la carpeta del proyecto, con el agente corriendo en otra terminal.
+**Ctrl+J** abre una terminal abajo, en la carpeta del proyecto: PowerShell en Windows,
+tu shell (`$SHELL`) en Linux. Es una terminal de verdad: corren ahí el agente, `git add -p`, `vim`, etc.
+
+- **Ctrl+J** de nuevo, con el foco en la terminal, la oculta; sin el foco, la enfoca. Ocultarla no corta lo que esté corriendo.
+- Con el foco en la terminal, casi todas las teclas van al shell (Ctrl+C, Ctrl+D, Ctrl+R, Esc…).
+  Siguen andando **Ctrl+P**, los atajos con **Ctrl+Shift**, Ctrl+Tab, el zoom, F8 y F12.
+- **Ctrl+C** con texto seleccionado copia; sin selección interrumpe, como siempre. **Ctrl+V** pega.
+- `exit` cierra el panel; la próxima vez arranca un shell nuevo. Ctrl+Shift+P → "Terminal: reiniciar" abre uno nuevo en el momento.
+- Al cerrar liviano se cierran el shell y todo lo que hayas lanzado desde ahí.
+- El borde de arriba se arrastra para cambiar la altura. Usa el tema y el tamaño de letra del editor.
+- Otro shell: variable de entorno `LIVIANO_SHELL` (por ejemplo `pwsh.exe` o `/usr/bin/zsh`).
+
+## 10. Flujo típico
+
+1. `liviano .` en la carpeta del proyecto y **Ctrl+J** para abrir el agente en la terminal de abajo.
 2. Le pedís algo al agente.
 3. **Ctrl+Shift+D** para ver todo lo que cambió y recorrer los cambios con **F7**.
 4. Ves algo para corregir: doble click en la línea, editás y **Ctrl+S**.

@@ -96,6 +96,18 @@ Los atajos de línea actúan sobre todas las líneas que toque la selección y s
 | Click en el nombre del archivo | Abrir el archivo |
 | Click en el resto del encabezado | Colapsar / expandir ese archivo |
 
+## Terminal
+
+| Atajo | Acción |
+|---|---|
+| **Ctrl+J** | Abrir la terminal / enfocarla / ocultarla (si ya tiene el foco) |
+| **Ctrl+C** con texto seleccionado · **Ctrl+Shift+C** | Copiar |
+| **Ctrl+V** · **Ctrl+Shift+V** | Pegar |
+| `exit` | Cierra el shell y el panel |
+
+Con el foco en la terminal, las demás teclas van al shell. Siguen siendo de liviano: Ctrl+P, los atajos con Ctrl+Shift
+(salvo C y V), Ctrl+Alt+H, Ctrl+Tab, Ctrl+PageUp/PageDown, el zoom, F8 y F12.
+
 ## Paletas (Ctrl+P, Ctrl+Shift+P, Ctrl+Shift+G, Ctrl+G, Ctrl+N)
 
 | Atajo | Acción |
@@ -110,3 +122,4 @@ Los atajos de línea actúan sobre todas las líneas que toque la selección y s
 - Fuente del editor: agrandar / achicar / tamaño por defecto
 - Cerrar todas las pestañas
 - Reindexar archivos
+- Terminal: reiniciar

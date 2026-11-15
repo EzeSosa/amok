@@ -3,7 +3,7 @@ const { app, BrowserWindow, ipcMain, dialog, Menu, shell } = require('electron')
 const path = require('path');
 const fs = require('fs');
 const fsp = fs.promises;
-const { execFile } = require('child_process');
+const { execFile, spawnSync } = require('child_process');
 
 // Solo se usan si la carpeta no es un repo git (si lo es, manda el .gitignore).
 const IGNORED_DIRS = new Set([
@@ -361,6 +361,81 @@ ipcMain.on('zoom:set', (_e, factor) => {
 ipcMain.on('theme:set', (_e, name) => {
   if (win && THEME_BG[name]) win.setBackgroundColor(THEME_BG[name]);
 });
+
+// ---------- terminal ----------
+
+// node-pty se carga recién al abrir la terminal: si no se usa, no cuesta nada.
+let term = null;
+
+function defaultShell() {
+  if (process.platform === 'win32') return process.env.LIVIANO_SHELL || 'powershell.exe';
+  return process.env.LIVIANO_SHELL || process.env.SHELL || '/bin/bash';
+}
+
+ipcMain.handle('term:start', (_e, cols, rows) => {
+  if (term) return { ok: true };
+  let pty;
+  try {
+    pty = require('node-pty');
+  } catch (err) {
+    const hint = process.platform === 'linux'
+      ? 'Instalá un compilador (sudo apt install build-essential) y volvé a correr scripts/install-linux.sh.'
+      : 'Volvé a correr npm install en la carpeta de liviano.';
+    return { error: `La terminal no está disponible: node-pty no está instalado o no se pudo compilar.\n${hint}\n(${err.message.split('\n')[0]})` };
+  }
+  const shell = defaultShell();
+  let p;
+  try {
+    p = pty.spawn(shell, [], {
+      name: 'xterm-256color',
+      cols, rows,
+      cwd: root || app.getPath('home'),
+      env: { ...process.env, TERM_PROGRAM: 'liviano', COLORTERM: 'truecolor' },
+    });
+  } catch (err) {
+    return { error: `No se pudo abrir ${shell}: ${err.message}` };
+  }
+  // Juntar la salida unos milisegundos: menos mensajes IPC cuando sale mucho texto.
+  let buf = '';
+  let timer = null;
+  const flush = () => {
+    timer = null;
+    if (buf && win && !win.isDestroyed()) win.webContents.send('term:data', buf);
+    buf = '';
+  };
+  p.onData((d) => {
+    buf += d;
+    if (!timer) timer = setTimeout(flush, 5);
+  });
+  p.onExit(({ exitCode }) => {
+    flush();
+    if (term === p) term = null;
+    if (win && !win.isDestroyed()) win.webContents.send('term:exit', exitCode);
+  });
+  term = p;
+  return { ok: true, shell };
+});
+
+ipcMain.on('term:input', (_e, data) => { if (term) term.write(data); });
+
+ipcMain.on('term:resize', (_e, cols, rows) => {
+  if (term && cols > 0 && rows > 0) { try { term.resize(cols, rows); } catch {} }
+});
+
+// Corta el shell y todo lo que haya lanzado (un servidor, un agente…), para que no queden huérfanos.
+function killTerm() {
+  if (!term) return;
+  const p = term;
+  term = null;
+  // En Linux alcanza con el SIGHUP de kill(): el shell se lo pasa a sus procesos.
+  if (process.platform === 'win32') {
+    spawnSync('taskkill', ['/T', '/F', '/PID', String(p.pid)], { windowsHide: true, stdio: 'ignore' });
+  }
+  try { p.kill(); } catch {}
+}
+
+ipcMain.on('term:kill', killTerm);
+app.on('before-quit', killTerm);
 
 ipcMain.on('app:close-confirmed', () => {
   forceClose = true;

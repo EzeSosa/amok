@@ -94,6 +94,7 @@ function persist(now = false) {
       zoom: zoomFactor,
       treeVisible: tree.visible,
       treeWidth: tree.width,
+      termHeight: terminal.height,
       sessions: {
         [root]: {
           tabs: tabs.map((t) => t.path),
@@ -203,6 +204,7 @@ function fontStep(d) {
   fontSize = d === 0 ? 14 : Math.max(9, Math.min(32, fontSize + d));
   applyFont();
   renderHl(active);
+  termApplyStyle();
   persist();
 }
 
@@ -241,6 +243,7 @@ let theme = 'oscuro';
 function applyTheme(name) {
   theme = THEMES.some(([id]) => id === name) ? name : 'oscuro';
   document.documentElement.dataset.theme = theme;
+  termApplyStyle();
 }
 
 function openThemes() {
@@ -1297,6 +1300,8 @@ const COMMANDS = [
   ['Markdown: lectura / edición', 'Ctrl+E', toggleMd],
   ['Árbol de archivos: mostrar / ocultar', 'Ctrl+B', () => toggleTree()],
   ['Ir al árbol (revelar archivo actual)', 'Ctrl+Shift+E', () => focusTree()],
+  ['Terminal: abrir / ocultar', 'Ctrl+J', () => toggleTerminal()],
+  ['Terminal: reiniciar', '', () => restartTerminal()],
   ['Diff del archivo vs HEAD', 'Ctrl+D', () => toggleDiff()],
   ['Todos los cambios (git)', 'Ctrl+Shift+D', () => openReview()],
   ['Archivos cambiados (git)', 'Ctrl+Shift+G', () => openChanges()],
@@ -1352,6 +1357,8 @@ window.addEventListener('keydown', (e) => {
   const c = e.code;
   let handled = true;
 
+  if (termFocused() && !termKeepsKey(e)) return; // el resto de las teclas son del shell
+
   if (ctrl && alt && !shift && c === 'KeyH') openSearch();
   else if (alt) handled = false; // no interferir con AltGr
   else if (ctrl && shift && c === 'KeyF') openSearch();
@@ -1361,6 +1368,7 @@ window.addEventListener('keydown', (e) => {
   else if (ctrl && shift && c === 'KeyE') focusTree();
   else if (ctrl && shift && c === 'KeyD') openReview();
   else if (ctrl && shift && c === 'KeyG') openChanges();
+  else if (ctrl && !shift && c === 'KeyJ') toggleTerminal();
   else if (ctrl && !shift && c === 'KeyB') toggleTree();
   else if (ctrl && !shift && c === 'KeyD') toggleDiff();
   else if (!ctrl && e.key === 'F7') diffNavActive(shift ? -1 : 1);
@@ -1406,6 +1414,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   if (st.zoom) { zoomFactor = st.zoom; api.setZoom(zoomFactor); }
   if (st.treeVisible === false) tree.visible = false;
   if (st.treeWidth) tree.width = st.treeWidth;
+  if (st.termHeight) terminal.height = st.termHeight;
   applyTreeLayout();
   renderTree();
   applyFont();

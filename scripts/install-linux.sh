@@ -7,7 +7,8 @@
 #
 # Qué hace:
 #   1. Verifica git y Node.js >= 22.12 (lo pide Electron). Si no está, descarga uno privado en ~/.cache/liviano.
-#   2. npm ci: instala dependencias y descarga Electron dentro de node_modules/.
+#   2. npm ci: instala dependencias y descarga Electron dentro de node_modules/. La terminal integrada
+#      (node-pty) se compila acá: si falta, ofrece instalar build-essential.
 #   3. Instala las bibliotecas del sistema que le falten a Electron (solo en instalaciones mínimas/servidor).
 #   4. Ubuntu 23.10+ bloquea los user namespaces que usa el sandbox de Chromium: agrega un perfil de AppArmor
 #      para este Electron. Si no querés usar sudo, deja el sandbox desactivado para liviano.
@@ -158,6 +159,17 @@ ok "Node.js $(node --version), npm $(npm --version)"
 
 # ---------- dependencias de npm y Electron ----------
 
+# node-pty (terminal integrada) no trae binarios para Linux: se compila al instalar.
+# Es opcional: sin compilador, liviano anda igual pero sin terminal.
+has_compiler() { command -v make >/dev/null && command -v g++ >/dev/null && command -v python3 >/dev/null; }
+if ! has_compiler; then
+  if ask "La terminal integrada necesita compilar un módulo (build-essential, python3). ¿Instalarlos con apt (usa sudo)?"; then
+    apt_install build-essential python3
+  else
+    warn "Sin compilador: liviano funciona, pero sin terminal integrada."
+  fi
+fi
+
 info "Instalando dependencias (descarga Electron, ~100 MB la primera vez)"
 cd "$APP_DIR"
 if [[ -f package-lock.json ]]; then
@@ -169,6 +181,12 @@ fi
 [[ -x "$ELECTRON" ]] || node node_modules/electron/install.js
 [[ -x "$ELECTRON" ]] || die "No se pudo descargar Electron en $ELECTRON"
 ok "Electron $(cat node_modules/electron/dist/version 2>/dev/null || echo '?')"
+
+pty_ok() { node -e "require('./node_modules/node-pty')" >/dev/null 2>&1; }
+if ! pty_ok && has_compiler && [[ -d node_modules/node-pty ]]; then
+  npm rebuild node-pty --ignore-scripts=false --loglevel=error >/dev/null 2>&1 || true
+fi
+if pty_ok; then ok "Terminal integrada (node-pty)"; else warn "La terminal integrada no va a estar disponible (no se pudo compilar node-pty)."; fi
 
 # ---------- bibliotecas del sistema ----------
 

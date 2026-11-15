@@ -5,6 +5,7 @@
 A minimal text editor for coding alongside AI agents. No extensions, no LSP.
 Electron + one `<textarea>` per tab + `marked` to render `.md` files.
 Highlights Java, Python, TypeScript/JavaScript and shell with a small built-in tokenizer (`renderer/highlight.js`).
+Integrated terminal (xterm.js + node-pty) so the agent can run right next to the code.
 Themes: Oscuro (dark), Darcula and Claro (light). Font: JetBrains Mono (bundled locally via `@fontsource/jetbrains-mono`).
 
 > The user interface is in Spanish. Command names shown below in quotes are the ones you'll see in the app.
@@ -26,6 +27,7 @@ The installer:
 
 - checks git and Node (if you don't have Node 22.12+, it downloads one from nodejs.org just for liviano, no sudo);
 - downloads Electron;
+- builds the integrated terminal's native module (installs `build-essential` if missing; without it liviano still works, just without the terminal);
 - installs any missing system libraries;
 - on Ubuntu 23.10 or later, adds the AppArmor profile Chromium's sandbox needs;
 - creates `~/.local/bin/liviano` and an entry in the applications menu.
@@ -70,6 +72,7 @@ Documentation (in Spanish): [MANUAL.md](MANUAL.md) (how to use it) and [ATAJOS.m
 | Ctrl+Shift+R | Reload from disk, discarding changes |
 | Ctrl+O | Open folder |
 | Ctrl+B · Ctrl+Shift+E | Show/hide the file tree · Focus the tree, revealing the current file |
+| Ctrl+J | Terminal: open / hide |
 | Ctrl+D | Diff of the current file against HEAD (read-only; press again to go back to editing) |
 | Ctrl+Shift+D | "Cambios" tab: diff of the whole repo against HEAD, including new files |
 | Ctrl+Shift+G | List of changed files; Enter opens its diff |
