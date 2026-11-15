@@ -4,21 +4,20 @@ Editor mínimo para trabajar al lado de un agente: abrís una carpeta, buscás, 
 Colorea Java, Python, TypeScript/JavaScript y shell; no tiene extensiones. Todo se maneja con el teclado.
 
 > Tip: **Ctrl+Shift+P** muestra todos los comandos con su atajo. Si te olvidás de algo, empezá por ahí.
+> La lista completa de atajos está en [ATAJOS.md](ATAJOS.md). La instalación (Windows y Linux) está en el [README](README.md).
 
 ---
 
 ## 1. Abrir
 
-```
-cd C:\Users\ezequ\pocs\liviano
-npm start -- C:\ruta\al\proyecto
-```
-
-o, si agregaste `C:\Users\ezequ\pocs\liviano` al PATH:
+Desde la carpeta del proyecto:
 
 ```
 liviano .
 ```
+
+En Linux también aparece en el menú de aplicaciones. Sin el comando instalado: `npm start -- /ruta/al/proyecto`
+desde la carpeta de liviano.
 
 - Si no le pasás una carpeta, abre la última que usaste y restaura las pestañas que tenías abiertas.
 - **Ctrl+O** abre otra carpeta.

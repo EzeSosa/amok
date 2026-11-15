@@ -370,9 +370,12 @@ ipcMain.on('app:close-confirmed', () => {
 // ---------- ventana ----------
 
 function initialRoot() {
-  const args = process.argv.slice(app.isPackaged ? 1 : 2).filter((a) => !a.startsWith('-'));
+  // argv trae el ejecutable, la carpeta de la app (sin empaquetar) y flags de Chromium: ignorarlos.
+  const appDir = path.resolve(app.getAppPath());
+  const args = process.argv.slice(1).filter((a) => !a.startsWith('-'));
   for (const a of args) {
     const abs = path.resolve(process.cwd(), a);
+    if (abs === appDir) continue;
     try { if (fs.statSync(abs).isDirectory()) return abs; } catch {}
   }
   const last = readState().lastRoot;

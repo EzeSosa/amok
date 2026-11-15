@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+# Lanzador de liviano para Linux:  liviano [carpeta]
+# Abre la ventana en segundo plano y libera la terminal. Los errores van a ~/.cache/liviano/liviano.log.
+#   LIVIANO_FOREGROUND=1 liviano .   corre en primer plano mostrando la salida (para diagnosticar)
+set -euo pipefail
+
+APP_DIR="$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/.." && pwd)"
+ELECTRON="$APP_DIR/node_modules/electron/dist/electron"
+
+if [[ ! -x "$ELECTRON" ]]; then
+  echo "liviano: no encuentro Electron en $ELECTRON" >&2
+  echo "Corré el instalador: bash \"$APP_DIR/scripts/install-linux.sh\"" >&2
+  exit 1
+fi
+
+# El instalador escribe acá LIVIANO_NO_SANDBOX=1 si no se pudo habilitar el sandbox de Chromium.
+CONF="${XDG_CONFIG_HOME:-$HOME/.config}/liviano/launcher.env"
+# shellcheck source=/dev/null
+[[ -r "$CONF" ]] && source "$CONF"
+
+FLAGS=()
+[[ "${LIVIANO_NO_SANDBOX:-}" == 1 ]] && FLAGS+=(--no-sandbox)
+
+if [[ "${LIVIANO_FOREGROUND:-}" == 1 ]]; then
+  exec "$ELECTRON" "$APP_DIR" "${FLAGS[@]}" "$@"
+fi
+
+LOG_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/liviano"
+mkdir -p "$LOG_DIR"
+setsid -f "$ELECTRON" "$APP_DIR" "${FLAGS[@]}" "$@" >"$LOG_DIR/liviano.log" 2>&1 </dev/null
