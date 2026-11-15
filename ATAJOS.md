@@ -64,8 +64,17 @@ Referencia completa. En Linux los atajos son los mismos. **Ctrl+Shift+P** abre l
 | **Tab** | Indentar (con varias líneas seleccionadas, indenta el bloque) |
 | **Shift+Tab** | Desindentar la línea o el bloque |
 | **Enter** | Nueva línea manteniendo la indentación |
+| **Ctrl+Enter** / **Ctrl+Shift+Enter** | Nueva línea abajo / arriba, sin cortar la actual |
+| **Ctrl+Shift+K** | Borrar la línea |
+| **Shift+Alt+↓** / **Shift+Alt+↑** | Duplicar la línea abajo / arriba |
+| **Ctrl+Alt+↓** / **Ctrl+Alt+↑** | Lo mismo, como en Eclipse (algunos drivers de video de Windows usan este atajo para rotar la pantalla) |
+| **Alt+↓** / **Alt+↑** | Mover la línea abajo / arriba |
+| **Ctrl+L** | Seleccionar la línea; repetido, suma la siguiente |
+| **Ctrl+/** (en teclado español, **Ctrl+Shift+7**; o **Ctrl** + **/** del teclado numérico) | Comentar / descomentar. `//` en Java y TS/JS, `#` en Python y shell (también YAML, TOML, Go, C, etc.) |
 | **Ctrl+Z** | Deshacer |
 | **Ctrl+Y** (Windows) / **Ctrl+Shift+Z** | Rehacer |
+
+Los atajos de línea actúan sobre todas las líneas que toque la selección y se deshacen con un solo Ctrl+Z.
 
 ## Markdown
 

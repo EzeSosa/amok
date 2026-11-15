@@ -60,7 +60,14 @@ El borde derecho del árbol se arrastra para cambiar el ancho.
 | **Ctrl+S** / **Ctrl+Shift+S** | Guardar / guardar todo |
 | **Ctrl+N** | Archivo nuevo: escribís la ruta (`docs/notas.md`) y crea las carpetas que falten |
 | **Tab** / **Shift+Tab** | Indentar / desindentar (también con varias líneas seleccionadas) |
+| **Ctrl+Shift+K** | Borrar la línea |
+| **Shift+Alt+↓** / **↑** | Duplicar la línea abajo / arriba (también **Ctrl+Alt+↓** / **↑**, como Eclipse) |
+| **Alt+↓** / **↑** | Mover la línea abajo / arriba |
+| **Ctrl+/** | Comentar / descomentar |
 | **Ctrl+Shift+R** | Recargar del disco descartando tus cambios |
+
+- Los atajos de línea actúan sobre todas las líneas que toque la selección, y Ctrl+Z los deshace de a uno.
+  Hay más (línea nueva sin cortar la actual, seleccionar línea) en [ATAJOS.md](ATAJOS.md).
 
 - Las pestañas con cambios sin guardar muestran un **●**.
 - La indentación se detecta en cada archivo (tabs, 2 o 4 espacios).

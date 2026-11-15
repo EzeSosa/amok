@@ -559,17 +559,168 @@ function outdent(line, unit) {
   return line.slice(i);
 }
 
+function lineStart(v, pos) {
+  return pos <= 0 ? 0 : v.lastIndexOf('\n', pos - 1) + 1;
+}
+
+function lineEnd(v, pos) {
+  const nl = v.indexOf('\n', pos);
+  return nl < 0 ? v.length : nl;
+}
+
+// Líneas completas que toca la selección: [ls, le), sin el \n final.
+// Si la selección termina justo al principio de una línea, esa línea no cuenta.
+function lineBlock(ta) {
+  const v = ta.value, s = ta.selectionStart, en = ta.selectionEnd;
+  const ls = lineStart(v, s);
+  const last = en > s && v[en - 1] === '\n' ? en - 1 : en;
+  return { v, s, en, ls, le: lineEnd(v, last) };
+}
+
+// Reemplaza [from, to) pasando por insertText para que Ctrl+Z lo deshaga de una.
+function replaceRange(ta, from, to, text, selS, selE = selS) {
+  ta.setSelectionRange(from, to);
+  if (text || from !== to) insertText(text);
+  ta.setSelectionRange(selS, selE);
+}
+
+const LINE_COMMENT = { java: '//', ts: '//', python: '#', sh: '#' };
+// Otros archivos que suelen aparecer en un repo aunque no se coloreen.
+const EXTRA_COMMENT = {
+  jsonc: '//', c: '//', h: '//', cpp: '//', cs: '//', go: '//', rs: '//', kt: '//', kts: '//', gradle: '//',
+  scss: '//', rb: '#', yml: '#', yaml: '#', toml: '#', properties: '#', conf: '#', env: '#', gitignore: '#',
+  ps1: '#', ini: ';', sql: '--',
+};
+
+function commentFor(path) {
+  const lang = langFor(path);
+  if (lang) return LINE_COMMENT[lang];
+  const base = path.split('/').pop().toLowerCase();
+  if (base === 'dockerfile' || base === 'makefile') return '#';
+  const m = /\.([^.]+)$/.exec(base);
+  return (m && EXTRA_COMMENT[m[1]]) || null;
+}
+
+const LINE_OPS = {
+  // Borra las líneas de la selección. El cursor queda en la misma columna de la línea siguiente.
+  delete(t) {
+    const ta = t.ta;
+    const { v, s, ls, le } = lineBlock(ta);
+    const col = s - ls;
+    let from = ls, to = le;
+    if (le < v.length) to = le + 1;
+    else if (ls > 0) from = ls - 1;
+    const rest = v.slice(0, from) + v.slice(to);
+    const nls = lineStart(rest, from);
+    const c = Math.min(nls + col, lineEnd(rest, nls));
+    replaceRange(ta, from, to, '', c);
+  },
+
+  duplicate(t, dir) {
+    const ta = t.ta;
+    const { v, s, en, ls, le } = lineBlock(ta);
+    const block = v.slice(ls, le);
+    const shift = dir > 0 ? block.length + 1 : 0;
+    replaceRange(ta, ls, le, block + '\n' + block, s + shift, en + shift);
+  },
+
+  move(t, dir) {
+    const ta = t.ta;
+    const { v, s, en, ls, le } = lineBlock(ta);
+    const block = v.slice(ls, le);
+    if (dir > 0) {
+      if (le >= v.length) return;
+      const ne = lineEnd(v, le + 1);
+      const next = v.slice(le + 1, ne);
+      replaceRange(ta, ls, ne, next + '\n' + block, s + next.length + 1, en + next.length + 1);
+    } else {
+      if (ls === 0) return;
+      const ps = lineStart(v, ls - 1);
+      const prev = v.slice(ps, ls - 1);
+      replaceRange(ta, ps, le, block + '\n' + prev, s - prev.length - 1, en - prev.length - 1);
+    }
+  },
+
+  // Línea nueva abajo (dir 1) o arriba (dir -1) con la indentación de la actual, sin partir la línea.
+  open(t, dir) {
+    const ta = t.ta, v = ta.value;
+    const ls = lineStart(v, ta.selectionStart);
+    const indent = /^[ \t]*/.exec(v.slice(ls))[0];
+    if (dir > 0) {
+      const le = lineEnd(v, ta.selectionEnd);
+      replaceRange(ta, le, le, '\n' + indent, le + 1 + indent.length);
+    } else {
+      replaceRange(ta, ls, ls, indent + '\n', ls + indent.length);
+    }
+  },
+
+  // Selecciona la línea entera; repetido, agrega la siguiente.
+  select(t) {
+    const ta = t.ta, v = ta.value;
+    const ls = lineStart(v, ta.selectionStart);
+    const le = lineEnd(v, ta.selectionEnd);
+    ta.setSelectionRange(ls, Math.min(le + 1, v.length));
+  },
+
+  comment(t) {
+    const ta = t.ta;
+    const mark = commentFor(t.path);
+    if (!mark) { flash('No sé cómo comentar este tipo de archivo', false); return; }
+    const { v, s, en, ls, le } = lineBlock(ta);
+    const lines = v.slice(ls, le).split('\n');
+    const code = lines.filter((l) => l.trim());
+    if (!code.length) return;
+    const isCommented = (l) => l.trimStart().startsWith(mark);
+    const uncomment = code.every(isCommented);
+    const minIndent = Math.min(...code.map((l) => /^[ \t]*/.exec(l)[0].length));
+    const out = lines.map((l) => {
+      if (!l.trim()) return l;
+      if (uncomment) {
+        const i = l.indexOf(mark);
+        const j = i + mark.length + (l[i + mark.length] === ' ' ? 1 : 0);
+        return l.slice(0, i) + l.slice(j);
+      }
+      return l.slice(0, minIndent) + mark + ' ' + l.slice(minIndent);
+    });
+    const text = out.join('\n');
+    if (s === en) {
+      const delta = out[0].length - lines[0].length;
+      const c = Math.max(ls, Math.min(s + delta, ls + out[0].length));
+      replaceRange(ta, ls, le, text, c);
+    } else {
+      replaceRange(ta, ls, le, text, ls, ls + text.length);
+    }
+  },
+};
+
+function lineOp(name, ...args) {
+  const t = active;
+  if (!t || t.virtual || t.mode !== 'edit') return;
+  t.ta.focus();
+  LINE_OPS[name](t, ...args);
+}
+
 function editorKey(e, t) {
   const ta = t.ta;
+  const ctrl = e.ctrlKey || e.metaKey, alt = e.altKey, shift = e.shiftKey;
+  const vert = e.key === 'ArrowUp' ? -1 : e.key === 'ArrowDown' ? 1 : 0;
+  let op = null;
+  if (ctrl && shift && !alt && e.code === 'KeyK') op = ['delete'];
+  else if (vert && alt && !ctrl && !shift) op = ['move', vert];
+  else if (vert && alt && (shift !== ctrl)) op = ['duplicate', vert]; // Shift+Alt (VS Code) o Ctrl+Alt (Eclipse)
+  else if (ctrl && !alt && e.key === 'Enter') op = ['open', shift ? -1 : 1];
+  else if (ctrl && !alt && !shift && e.code === 'KeyL') op = ['select'];
+  else if (ctrl && !alt && (e.key === '/' || e.code === 'NumpadDivide')) op = ['comment'];
+  if (op) {
+    e.preventDefault();
+    LINE_OPS[op[0]](t, ...op.slice(1));
+    return;
+  }
   if (e.key === 'Tab' && !e.ctrlKey && !e.altKey && !e.metaKey) {
     e.preventDefault();
-    const s = ta.selectionStart, en = ta.selectionEnd, v = ta.value;
+    const { v, s, en, ls, le: blockEnd } = lineBlock(ta);
     const multi = v.slice(s, en).includes('\n');
     if (!multi && !e.shiftKey) { insertText(t.indent); return; }
-    const ls = v.lastIndexOf('\n', s - 1) + 1;
-    const le = en > s && v[en - 1] === '\n' ? en - 1 : en;
-    const nl = v.indexOf('\n', le);
-    const blockEnd = nl < 0 ? v.length : nl;
     const lines = v.slice(ls, blockEnd).split('\n');
     const out = lines.map((l) => (e.shiftKey ? outdent(l, t.indent) : (l.length ? t.indent + l : l))).join('\n');
     ta.setSelectionRange(ls, blockEnd);
@@ -1134,6 +1285,15 @@ const COMMANDS = [
   ['Resultado anterior', 'Shift+F8', () => nextResult(-1)],
   ['Buscar en el archivo', 'Ctrl+F', openFind],
   ['Ir a línea', 'Ctrl+G', gotoLine],
+  ['Línea: borrar', 'Ctrl+Shift+K', () => lineOp('delete')],
+  ['Línea: duplicar abajo', 'Shift+Alt+↓ · Ctrl+Alt+↓', () => lineOp('duplicate', 1)],
+  ['Línea: duplicar arriba', 'Shift+Alt+↑ · Ctrl+Alt+↑', () => lineOp('duplicate', -1)],
+  ['Línea: mover abajo', 'Alt+↓', () => lineOp('move', 1)],
+  ['Línea: mover arriba', 'Alt+↑', () => lineOp('move', -1)],
+  ['Línea: nueva abajo', 'Ctrl+Enter', () => lineOp('open', 1)],
+  ['Línea: nueva arriba', 'Ctrl+Shift+Enter', () => lineOp('open', -1)],
+  ['Línea: seleccionar', 'Ctrl+L', () => lineOp('select')],
+  ['Comentar / descomentar líneas', 'Ctrl+/', () => lineOp('comment')],
   ['Markdown: lectura / edición', 'Ctrl+E', toggleMd],
   ['Árbol de archivos: mostrar / ocultar', 'Ctrl+B', () => toggleTree()],
   ['Ir al árbol (revelar archivo actual)', 'Ctrl+Shift+E', () => focusTree()],

@@ -63,6 +63,9 @@ Documentation (in Spanish): [MANUAL.md](MANUAL.md) (how to use it) and [ATAJOS.m
 | Ctrl+E | Markdown: read ⇄ edit (`.md` files open in read mode) |
 | Ctrl+S · Ctrl+Shift+S | Save · Save all |
 | Ctrl+N | New file (creates intermediate folders) |
+| Ctrl+Shift+K · Shift+Alt+↓↑ | Delete line · Duplicate line (also Ctrl+Alt+↓↑) |
+| Alt+↓↑ · Ctrl+/ | Move line · Toggle comment |
+| Ctrl+Enter · Ctrl+L | New line below (Ctrl+Shift+Enter: above) · Select line |
 | Ctrl+W · Ctrl+Tab | Close tab · Switch tab |
 | Ctrl+Shift+R | Reload from disk, discarding changes |
 | Ctrl+O | Open folder |
