@@ -65,7 +65,7 @@ Referencia completa. En Linux los atajos son los mismos. **Ctrl+Shift+P** abre l
 | **Shift+Tab** | Desindentar la línea o el bloque |
 | **Enter** | Nueva línea manteniendo la indentación |
 | **Ctrl+Enter** / **Ctrl+Shift+Enter** | Nueva línea abajo / arriba, sin cortar la actual |
-| **Ctrl+Shift+K** | Borrar la línea |
+| **Alt+Supr** | Borrar la línea |
 | **Shift+Alt+↓** / **Shift+Alt+↑** | Duplicar la línea abajo / arriba |
 | **Ctrl+Alt+↓** / **Ctrl+Alt+↑** | Lo mismo, como en Eclipse (algunos drivers de video de Windows usan este atajo para rotar la pantalla) |
 | **Alt+↓** / **Alt+↑** | Mover la línea abajo / arriba |

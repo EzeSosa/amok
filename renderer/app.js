@@ -705,7 +705,7 @@ function editorKey(e, t) {
   const ctrl = e.ctrlKey || e.metaKey, alt = e.altKey, shift = e.shiftKey;
   const vert = e.key === 'ArrowUp' ? -1 : e.key === 'ArrowDown' ? 1 : 0;
   let op = null;
-  if (ctrl && shift && !alt && e.code === 'KeyK') op = ['delete'];
+  if (alt && !ctrl && !shift && e.key === 'Delete') op = ['delete'];
   else if (vert && alt && !ctrl && !shift) op = ['move', vert];
   else if (vert && alt && (shift !== ctrl)) op = ['duplicate', vert]; // Shift+Alt (VS Code) o Ctrl+Alt (Eclipse)
   else if (ctrl && !alt && e.key === 'Enter') op = ['open', shift ? -1 : 1];
@@ -1285,7 +1285,7 @@ const COMMANDS = [
   ['Resultado anterior', 'Shift+F8', () => nextResult(-1)],
   ['Buscar en el archivo', 'Ctrl+F', openFind],
   ['Ir a línea', 'Ctrl+G', gotoLine],
-  ['Línea: borrar', 'Ctrl+Shift+K', () => lineOp('delete')],
+  ['Línea: borrar', 'Alt+Supr', () => lineOp('delete')],
   ['Línea: duplicar abajo', 'Shift+Alt+↓ · Ctrl+Alt+↓', () => lineOp('duplicate', 1)],
   ['Línea: duplicar arriba', 'Shift+Alt+↑ · Ctrl+Alt+↑', () => lineOp('duplicate', -1)],
   ['Línea: mover abajo', 'Alt+↓', () => lineOp('move', 1)],

@@ -61,7 +61,7 @@ Documentación: [MANUAL.md](MANUAL.md) (cómo se usa) y [ATAJOS.md](ATAJOS.md) (
 | Ctrl+E | Markdown: lectura ⇄ edición (los `.md` abren en lectura) |
 | Ctrl+S · Ctrl+Shift+S | Guardar · Guardar todo |
 | Ctrl+N | Archivo nuevo (crea carpetas intermedias) |
-| Ctrl+Shift+K · Shift+Alt+↓↑ | Borrar línea · Duplicar línea (también Ctrl+Alt+↓↑) |
+| Alt+Supr · Shift+Alt+↓↑ | Borrar línea · Duplicar línea (también Ctrl+Alt+↓↑) |
 | Alt+↓↑ · Ctrl+/ | Mover línea · Comentar / descomentar |
 | Ctrl+Enter · Ctrl+L | Nueva línea abajo (Ctrl+Shift+Enter: arriba) · Seleccionar línea |
 | Ctrl+W · Ctrl+Tab | Cerrar pestaña · Cambiar pestaña |

@@ -60,7 +60,7 @@ El borde derecho del árbol se arrastra para cambiar el ancho.
 | **Ctrl+S** / **Ctrl+Shift+S** | Guardar / guardar todo |
 | **Ctrl+N** | Archivo nuevo: escribís la ruta (`docs/notas.md`) y crea las carpetas que falten |
 | **Tab** / **Shift+Tab** | Indentar / desindentar (también con varias líneas seleccionadas) |
-| **Ctrl+Shift+K** | Borrar la línea |
+| **Alt+Supr** | Borrar la línea |
 | **Shift+Alt+↓** / **↑** | Duplicar la línea abajo / arriba (también **Ctrl+Alt+↓** / **↑**, como Eclipse) |
 | **Alt+↓** / **↑** | Mover la línea abajo / arriba |
 | **Ctrl+/** | Comentar / descomentar |
