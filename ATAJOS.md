@@ -98,15 +98,18 @@ Los atajos de línea actúan sobre todas las líneas que toque la selección y s
 
 ## Terminal
 
+Cada terminal es una pestaña más, a pantalla completa.
+
 | Atajo | Acción |
 |---|---|
-| **Ctrl+J** | Abrir la terminal / enfocarla / ocultarla (si ya tiene el foco) |
+| **Ctrl+J** | Ir a la terminal (la abre si no hay) / volver al último archivo |
+| **Ctrl+Shift+J** | Terminal nueva |
 | **Ctrl+C** con texto seleccionado · **Ctrl+Shift+C** | Copiar |
 | **Ctrl+V** · **Ctrl+Shift+V** | Pegar |
-| `exit` | Cierra el shell y el panel |
+| `exit` | Cierra el shell y la pestaña |
 
-Con el foco en la terminal, las demás teclas van al shell. Siguen siendo de liviano: Ctrl+P, los atajos con Ctrl+Shift
-(salvo C y V), Ctrl+Alt+H, Ctrl+Tab, Ctrl+PageUp/PageDown, el zoom, F8 y F12.
+Con el foco en la terminal, las demás teclas van al shell (Ctrl+W incluido). Siguen siendo de liviano: Ctrl+J, Ctrl+P,
+los atajos con Ctrl+Shift (salvo C y V), Ctrl+Alt+H, Ctrl+Tab, Ctrl+PageUp/PageDown, el zoom, F8 y F12.
 
 ## Paletas (Ctrl+P, Ctrl+Shift+P, Ctrl+Shift+G, Ctrl+G, Ctrl+N)
 

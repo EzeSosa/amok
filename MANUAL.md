@@ -121,21 +121,31 @@ liviano vigila la carpeta todo el tiempo:
 
 ## 9. Terminal
 
-**Ctrl+J** abre una terminal abajo, en la carpeta del proyecto: PowerShell en Windows,
-tu shell (`$SHELL`) en Linux. Es una terminal de verdad: corren ahí el agente, `git add -p`, `vim`, etc.
+La terminal es **una pestaña más**, a pantalla completa, como un archivo. Arranca en la carpeta del proyecto:
+PowerShell en Windows, tu shell (`$SHELL`) en Linux. Es una terminal de verdad: corren ahí el agente, `git add -p`, `vim`, etc.
 
-- **Ctrl+J** de nuevo, con el foco en la terminal, la oculta; sin el foco, la enfoca. Ocultarla no corta lo que esté corriendo.
-- Con el foco en la terminal, casi todas las teclas van al shell (Ctrl+C, Ctrl+D, Ctrl+R, Esc…).
-  Siguen andando **Ctrl+P**, los atajos con **Ctrl+Shift**, Ctrl+Tab, el zoom, F8 y F12.
+| Atajo | Qué hace |
+|---|---|
+| **Ctrl+J** | Desde un archivo: va a la terminal (si no hay, abre una). Desde la terminal: vuelve al último archivo |
+| **Ctrl+Shift+J** | Terminal nueva (pueden ser varias: el agente en una, un servidor en otra) |
+| **Ctrl+Tab** | Pasa por las pestañas, terminales incluidas |
+
+- Ctrl+J es para ir y venir entre lo que estás leyendo (una spec en `.md`, por ejemplo) y el agente.
+  Moverte a otra pestaña no corta nada: lo que corre en la terminal sigue.
+- Con el foco en la terminal, casi todas las teclas van al shell (Ctrl+C, Ctrl+D, Ctrl+R, Ctrl+W, Esc…).
+  Siguen andando **Ctrl+J**, **Ctrl+P**, los atajos con **Ctrl+Shift**, Ctrl+Tab, el zoom, F8 y F12.
 - **Ctrl+C** con texto seleccionado copia; sin selección interrumpe, como siempre. **Ctrl+V** pega.
-- `exit` cierra el panel; la próxima vez arranca un shell nuevo. Ctrl+Shift+P → "Terminal: reiniciar" abre uno nuevo en el momento.
-- Al cerrar liviano se cierran el shell y todo lo que hayas lanzado desde ahí.
-- El borde de arriba se arrastra para cambiar la altura. Usa el tema y el tamaño de letra del editor.
-- Otro shell: variable de entorno `LIVIANO_SHELL` (por ejemplo `pwsh.exe` o `/usr/bin/zsh`).
+- `exit` cierra la pestaña. Cerrarla con la × también corta el shell (pregunta antes).
+  Ctrl+Shift+P → "Terminal: reiniciar" abre un shell nuevo en la misma pestaña.
+- Las pestañas de terminal se recuerdan con el resto: al volver a abrir el proyecto están ahí, con un shell nuevo.
+- Al cerrar liviano se cierran los shells y todo lo que hayas lanzado desde ahí.
+- Al pasar el mouse por la pestaña ves el título que puso el programa (el agente, la carpeta…).
+- Usa el tema y el tamaño de letra del editor. Otro shell: variable de entorno `LIVIANO_SHELL`
+  (por ejemplo `pwsh.exe` o `/usr/bin/zsh`).
 
 ## 10. Flujo típico
 
-1. `liviano .` en la carpeta del proyecto y **Ctrl+J** para abrir el agente en la terminal de abajo.
+1. `liviano .` en la carpeta del proyecto y **Ctrl+J** para abrir una terminal y arrancar el agente.
 2. Le pedís algo al agente.
 3. **Ctrl+Shift+D** para ver todo lo que cambió y recorrer los cambios con **F7**.
 4. Ves algo para corregir: doble click en la línea, editás y **Ctrl+S**.

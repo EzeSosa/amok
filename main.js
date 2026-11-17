@@ -364,8 +364,10 @@ ipcMain.on('theme:set', (_e, name) => {
 
 // ---------- terminal ----------
 
-// node-pty se carga recién al abrir la terminal: si no se usa, no cuesta nada.
-let term = null;
+// node-pty se carga recién al abrir la primera terminal: si no se usa, no cuesta nada.
+// Puede haber varias (una por pestaña), identificadas por un número.
+const terms = new Map();
+let termSeq = 0;
 
 function defaultShell() {
   if (process.platform === 'win32') return process.env.LIVIANO_SHELL || 'powershell.exe';
@@ -373,7 +375,6 @@ function defaultShell() {
 }
 
 ipcMain.handle('term:start', (_e, cols, rows) => {
-  if (term) return { ok: true };
   let pty;
   try {
     pty = require('node-pty');
@@ -395,12 +396,13 @@ ipcMain.handle('term:start', (_e, cols, rows) => {
   } catch (err) {
     return { error: `No se pudo abrir ${shell}: ${err.message}` };
   }
+  const id = ++termSeq;
   // Juntar la salida unos milisegundos: menos mensajes IPC cuando sale mucho texto.
   let buf = '';
   let timer = null;
   const flush = () => {
     timer = null;
-    if (buf && win && !win.isDestroyed()) win.webContents.send('term:data', buf);
+    if (buf && win && !win.isDestroyed()) win.webContents.send('term:data', id, buf);
     buf = '';
   };
   p.onData((d) => {
@@ -409,24 +411,25 @@ ipcMain.handle('term:start', (_e, cols, rows) => {
   });
   p.onExit(({ exitCode }) => {
     flush();
-    if (term === p) term = null;
-    if (win && !win.isDestroyed()) win.webContents.send('term:exit', exitCode);
+    if (terms.get(id) === p) terms.delete(id);
+    if (win && !win.isDestroyed()) win.webContents.send('term:exit', id, exitCode);
   });
-  term = p;
-  return { ok: true, shell };
+  terms.set(id, p);
+  return { ok: true, id, shell: path.basename(shell) };
 });
 
-ipcMain.on('term:input', (_e, data) => { if (term) term.write(data); });
+ipcMain.on('term:input', (_e, id, data) => { const p = terms.get(id); if (p) p.write(data); });
 
-ipcMain.on('term:resize', (_e, cols, rows) => {
-  if (term && cols > 0 && rows > 0) { try { term.resize(cols, rows); } catch {} }
+ipcMain.on('term:resize', (_e, id, cols, rows) => {
+  const p = terms.get(id);
+  if (p && cols > 0 && rows > 0) { try { p.resize(cols, rows); } catch {} }
 });
 
 // Corta el shell y todo lo que haya lanzado (un servidor, un agente…), para que no queden huérfanos.
-function killTerm() {
-  if (!term) return;
-  const p = term;
-  term = null;
+function killTerm(id) {
+  const p = terms.get(id);
+  if (!p) return;
+  terms.delete(id);
   // En Linux alcanza con el SIGHUP de kill(): el shell se lo pasa a sus procesos.
   if (process.platform === 'win32') {
     spawnSync('taskkill', ['/T', '/F', '/PID', String(p.pid)], { windowsHide: true, stdio: 'ignore' });
@@ -434,8 +437,12 @@ function killTerm() {
   try { p.kill(); } catch {}
 }
 
-ipcMain.on('term:kill', killTerm);
-app.on('before-quit', killTerm);
+function killAllTerms() {
+  for (const id of [...terms.keys()]) killTerm(id);
+}
+
+ipcMain.on('term:kill', (_e, id) => killTerm(id));
+app.on('before-quit', killAllTerms);
 
 ipcMain.on('app:close-confirmed', () => {
   forceClose = true;
@@ -478,6 +485,8 @@ function createWindow() {
   if (s.maximized) win.maximize();
 
   win.webContents.on('will-navigate', (e) => e.preventDefault());
+  // Si la página se recarga (Ctrl+R en DevTools, un crash), sus terminales ya no tienen dueño.
+  win.webContents.on('did-start-loading', killAllTerms);
   win.webContents.setWindowOpenHandler(({ url }) => {
     if (/^(https?|mailto):/i.test(url)) shell.openExternal(url);
     return { action: 'deny' };

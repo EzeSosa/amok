@@ -94,7 +94,6 @@ function persist(now = false) {
       zoom: zoomFactor,
       treeVisible: tree.visible,
       treeWidth: tree.width,
-      termHeight: terminal.height,
       sessions: {
         [root]: {
           tabs: tabs.map((t) => t.path),
@@ -131,6 +130,7 @@ async function setRoot(r) {
   if (sess.searchOpts) Object.assign(search.opts, sess.searchOpts);
   for (const p of sess.tabs || []) {
     if (p === REVIEW) await openReview({ background: true });
+    else if (p.startsWith(TERM_PREFIX)) openTerminal({ background: true, n: +p.slice(TERM_PREFIX.length) || 1 });
     else await openFile(p, { background: true, silent: true });
   }
   const act = tabs.find((t) => t.path === sess.active) || tabs[0];
@@ -162,7 +162,8 @@ function updateUI() {
   $('#empty').hidden = !!active;
   $('#st-path').textContent = active && !active.virtual ? active.path : (root || '');
   let mode = '';
-  if (active && (active.virtual || active.mode === 'diff')) mode = 'DIFF vs HEAD · lectura';
+  if (active && active.term) mode = active.shell ? `Terminal · ${active.shell}` : 'Terminal';
+  else if (active && (active.virtual || active.mode === 'diff')) mode = 'DIFF vs HEAD · lectura';
   else if (active && active.md) mode = active.mode === 'preview' ? 'MD · lectura' : 'MD · edición';
   else if (active && active.lang) mode = LANGS[active.lang].name;
   $('#st-mode').textContent = mode;
@@ -181,7 +182,7 @@ function updateUI() {
 
 function updatePos() {
   const pos = $('#st-pos');
-  if (!active) { pos.textContent = ''; return; }
+  if (!active || active.term) { pos.textContent = ''; return; }
   if (active.mode === 'diff') { pos.textContent = active.diffSummary || ''; return; }
   if (active.mode === 'preview') { pos.textContent = `${active.lines} líneas`; return; }
   const ta = active.ta;
@@ -345,6 +346,7 @@ function makeTab(path, data) {
 }
 
 function destroyTab(t) {
+  if (t.term) termDispose(t);
   t.pane.remove();
   tabs.splice(tabs.indexOf(t), 1);
   if (active === t) active = null;
@@ -380,7 +382,9 @@ function activate(t) {
   if (active) active.pane.classList.remove('active');
   active = t;
   if (t) {
+    t.usedAt = ++useSeq;
     t.pane.classList.add('active');
+    if (t.term) termActivate(t);
     if (t.mode === 'preview' && t.previewStale) renderPreview(t);
     if (t.mode === 'diff') refreshDiffView(t);
     renderHl(t);
@@ -395,7 +399,8 @@ function activate(t) {
 
 function focusEditor() {
   if (!active) return;
-  if (active.virtual) active.view.focus();
+  if (active.term) termFocus(active);
+  else if (active.virtual) active.view.focus();
   else if (active.mode === 'diff') active.diffview.focus();
   else if (active.mode === 'preview') active.preview.focus();
   else active.ta.focus();
@@ -404,6 +409,7 @@ function focusEditor() {
 function closeTab(t) {
   if (!t) return;
   if (t.dirty && !confirm(`"${t.path}" tiene cambios sin guardar.\n¿Cerrar igual?`)) return;
+  if (t.term && t.id && !confirm(`¿Cerrar "${t.title}"? Se corta lo que esté corriendo ahí.`)) return;
   const wasActive = t === active;
   const i = tabs.indexOf(t);
   destroyTab(t);
@@ -433,7 +439,7 @@ function renderTabs() {
     if (t.dirty) cls += ' dirty';
     if (t.conflict || t.deleted) cls += ' conflict';
     const d = el('div', cls);
-    d.title = t.title || t.path;
+    d.title = t.tip || t.title || t.path;
     d.append(el('span', null, t.title || basename(t.path)));
     if (counts[basename(t.path)] > 1) d.append(el('span', 'hint', dirname(t.path)));
     const x = el('span', 'x');
@@ -539,6 +545,7 @@ async function syncFromDisk(t, force = false) {
 
 function reloadActive() {
   if (!active) return;
+  if (active.term) return;
   if (active.virtual) { refreshDiffView(active); return; }
   if (active.dirty && !confirm(`¿Descartar los cambios en "${active.path}" y recargar del disco?`)) return;
   syncFromDisk(active, true);
@@ -1277,6 +1284,7 @@ function newFile() {
 
 async function openFolder() {
   if (tabs.some((t) => t.dirty) && !confirm('Hay archivos sin guardar. ¿Abrir otra carpeta igual?')) return;
+  if (tabs.some((t) => t.term && t.id) && !confirm('Las terminales abiertas se van a cerrar. ¿Abrir otra carpeta igual?')) return;
   persist(true);
   await api.openFolder();
 }
@@ -1300,7 +1308,8 @@ const COMMANDS = [
   ['Markdown: lectura / edición', 'Ctrl+E', toggleMd],
   ['Árbol de archivos: mostrar / ocultar', 'Ctrl+B', () => toggleTree()],
   ['Ir al árbol (revelar archivo actual)', 'Ctrl+Shift+E', () => focusTree()],
-  ['Terminal: abrir / ocultar', 'Ctrl+J', () => toggleTerminal()],
+  ['Terminal: ir / volver al archivo', 'Ctrl+J', () => toggleTerminal()],
+  ['Terminal nueva', 'Ctrl+Shift+J', () => openTerminal()],
   ['Terminal: reiniciar', '', () => restartTerminal()],
   ['Diff del archivo vs HEAD', 'Ctrl+D', () => toggleDiff()],
   ['Todos los cambios (git)', 'Ctrl+Shift+D', () => openReview()],
@@ -1369,6 +1378,7 @@ window.addEventListener('keydown', (e) => {
   else if (ctrl && shift && c === 'KeyD') openReview();
   else if (ctrl && shift && c === 'KeyG') openChanges();
   else if (ctrl && !shift && c === 'KeyJ') toggleTerminal();
+  else if (ctrl && shift && c === 'KeyJ') openTerminal();
   else if (ctrl && !shift && c === 'KeyB') toggleTree();
   else if (ctrl && !shift && c === 'KeyD') toggleDiff();
   else if (!ctrl && e.key === 'F7') diffNavActive(shift ? -1 : 1);
@@ -1414,7 +1424,6 @@ window.addEventListener('DOMContentLoaded', async () => {
   if (st.zoom) { zoomFactor = st.zoom; api.setZoom(zoomFactor); }
   if (st.treeVisible === false) tree.visible = false;
   if (st.treeWidth) tree.width = st.treeWidth;
-  if (st.termHeight) terminal.height = st.termHeight;
   applyTreeLayout();
   renderTree();
   applyFont();

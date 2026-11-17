@@ -389,12 +389,10 @@ input:focus { border-color: var(--accent); }
 #splitter { flex: none; width: 4px; cursor: col-resize; background: var(--side); }
 #splitter:hover { background: var(--bg3); }
 
-/* ---------- terminal ---------- */
-#tsplit { flex: none; height: 4px; cursor: row-resize; background: var(--bg2); }
-#tsplit:hover { background: var(--bg3); }
-#terminal { flex: none; min-height: 0; padding: 4px 0 2px 10px; background: var(--bg); overflow: hidden; }
-#terminal .xterm { height: 100%; }
-#terminal .xterm-viewport { background: var(--bg) !important; }
+/* ---------- terminal (una pestaña más) ---------- */
+.termhost { flex: 1; min-width: 0; padding: 6px 0 4px 12px; background: var(--bg); }
+.termhost .xterm { height: 100%; }
+.termhost .xterm-viewport { background: var(--bg) !important; }
 #tree-title {
   padding: 9px 12px 7px;
   font-size: 11px;

@@ -5,7 +5,7 @@
 Editor de texto mínimo para programar con agentes. Sin extensiones ni LSP.
 Electron + un `<textarea>` por pestaña + `marked` para ver los `.md` formateados.
 Colorea Java, Python, TypeScript/JavaScript y shell con un tokenizador propio (`renderer/highlight.js`).
-Terminal integrada (xterm.js + node-pty) para tener el agente al lado del código.
+Terminal integrada (xterm.js + node-pty) como una pestaña más, a pantalla completa: Ctrl+J va y vuelve entre la spec y el agente.
 Temas: Oscuro, Darcula y Claro (Ctrl+Shift+P → "Cambiar tema"). Fuente: JetBrains Mono (`@fontsource/jetbrains-mono`, local).
 
 ## Instalación
@@ -70,7 +70,7 @@ Documentación: [MANUAL.md](MANUAL.md) (cómo se usa) y [ATAJOS.md](ATAJOS.md) (
 | Ctrl+Shift+R | Recargar del disco descartando cambios |
 | Ctrl+O | Abrir carpeta |
 | Ctrl+B · Ctrl+Shift+E | Mostrar/ocultar el árbol · Ir al árbol revelando el archivo actual |
-| Ctrl+J | Terminal: abrir / ocultar |
+| Ctrl+J · Ctrl+Shift+J | Terminal ⇄ último archivo · Terminal nueva (cada terminal es una pestaña) |
 | Ctrl+D | Diff del archivo actual contra HEAD (solo lectura; de nuevo vuelve a editar) |
 | Ctrl+Shift+D | Pestaña "Cambios": diff de todo el repo contra HEAD, incluidos archivos nuevos |
 | Ctrl+Shift+G | Lista de archivos cambiados; Enter abre su diff |

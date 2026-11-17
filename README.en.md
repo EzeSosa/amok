@@ -5,7 +5,7 @@
 A minimal text editor for coding alongside AI agents. No extensions, no LSP.
 Electron + one `<textarea>` per tab + `marked` to render `.md` files.
 Highlights Java, Python, TypeScript/JavaScript and shell with a small built-in tokenizer (`renderer/highlight.js`).
-Integrated terminal (xterm.js + node-pty) so the agent can run right next to the code.
+Integrated terminal (xterm.js + node-pty) as just another full-size tab: Ctrl+J jumps back and forth between your spec and the agent.
 Themes: Oscuro (dark), Darcula and Claro (light). Font: JetBrains Mono (bundled locally via `@fontsource/jetbrains-mono`).
 
 > The user interface is in Spanish. Command names shown below in quotes are the ones you'll see in the app.
@@ -72,7 +72,7 @@ Documentation (in Spanish): [MANUAL.md](MANUAL.md) (how to use it) and [ATAJOS.m
 | Ctrl+Shift+R | Reload from disk, discarding changes |
 | Ctrl+O | Open folder |
 | Ctrl+B · Ctrl+Shift+E | Show/hide the file tree · Focus the tree, revealing the current file |
-| Ctrl+J | Terminal: open / hide |
+| Ctrl+J · Ctrl+Shift+J | Terminal ⇄ last file · New terminal (each terminal is a tab) |
 | Ctrl+D | Diff of the current file against HEAD (read-only; press again to go back to editing) |
 | Ctrl+Shift+D | "Cambios" tab: diff of the whole repo against HEAD, including new files |
 | Ctrl+Shift+G | List of changed files; Enter opens its diff |

@@ -24,7 +24,7 @@ async function refreshGit() {
   gitRepo = !!r.repo;
   gitStatus = new Map((r.files || []).map((f) => [f.path, f.code]));
   renderTree();
-  if (active && (active.virtual || active.mode === 'diff')) refreshDiffView(active);
+  if (active && (active.path === REVIEW || active.mode === 'diff')) refreshDiffView(active);
 }
 
 // ---------- parseo de diff unificado ----------
@@ -188,7 +188,7 @@ async function refreshDiffView(t) {
 
 async function openReview(opt = {}) {
   if (!root) { flash('Primero abrí una carpeta (Ctrl+O)', false); return null; }
-  let t = tabs.find((x) => x.virtual);
+  let t = tabs.find((x) => x.path === REVIEW);
   if (!t) {
     const pane = el('div', 'pane review');
     const view = el('div', 'diffview');
@@ -244,7 +244,7 @@ async function openDiffFor(it) {
 
 function diffNavActive(d) {
   if (!active) return;
-  if (!active.virtual && active.mode !== 'diff') { flash('F7 navega hunks en la vista de diff (Ctrl+D)'); return; }
+  if (active.path !== REVIEW && active.mode !== 'diff') { flash('F7 navega hunks en la vista de diff (Ctrl+D)'); return; }
   diffNav(diffViewOf(active), d);
 }
 
