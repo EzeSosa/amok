@@ -98,7 +98,7 @@ Los atajos de línea actúan sobre todas las líneas que toque la selección y s
 
 ## Terminal
 
-Cada terminal es una pestaña más, a pantalla completa.
+Cada terminal es una pestaña más, a pantalla completa. También aparecen arriba del árbol de archivos (click para ir, click del medio para cerrar).
 
 | Atajo | Acción |
 |---|---|

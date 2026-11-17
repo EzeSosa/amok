@@ -453,6 +453,7 @@ function renderTabs() {
     bar.append(d);
     if (t === active) requestAnimationFrame(() => d.scrollIntoView({ block: 'nearest', inline: 'nearest' }));
   }
+  renderTermList();
 }
 
 function refreshGutter(t) {

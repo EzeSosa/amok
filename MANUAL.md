@@ -139,7 +139,8 @@ PowerShell en Windows, tu shell (`$SHELL`) en Linux. Es una terminal de verdad: 
   Ctrl+Shift+P → "Terminal: reiniciar" abre un shell nuevo en la misma pestaña.
 - Las pestañas de terminal se recuerdan con el resto: al volver a abrir el proyecto están ahí, con un shell nuevo.
 - Al cerrar amok se cierran los shells y todo lo que hayas lanzado desde ahí.
-- Al pasar el mouse por la pestaña ves el título que puso el programa (el agente, la carpeta…).
+- Las terminales también aparecen arriba del árbol de archivos: click para ir a una, click del medio para cerrarla,
+  "+ Terminal nueva" para abrir otra. Al pasar el mouse ves el título que puso el programa (el agente, la carpeta…).
 - Usa el tema y el tamaño de letra del editor. Otro shell: variable de entorno `AMOK_SHELL`
   (por ejemplo `pwsh.exe` o `/usr/bin/zsh`).
 

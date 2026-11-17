@@ -216,6 +216,28 @@ function restartTerminal() {
   termStart(t);
 }
 
+// Lista de terminales arriba del árbol de archivos (la llama renderTabs).
+function renderTermList() {
+  const box = $('#terms');
+  box.textContent = '';
+  for (const t of terminals()) {
+    const r = el('div', t === active ? 'trow cur' : 'trow');
+    r.title = t.tip || t.title;
+    r.append(el('span', 'tw'), el('span', 'tn', t.title));
+    r.addEventListener('mousedown', (e) => {
+      e.preventDefault();
+      if (e.button === 1) closeTab(t);
+      else if (e.button === 0) activate(t);
+    });
+    box.append(r);
+  }
+  const add = el('div', 'trow new');
+  add.title = terminals().length ? 'Terminal nueva (Ctrl+Shift+J)' : 'Abrir una terminal (Ctrl+J)';
+  add.append(el('span', 'tw'), el('span', 'tn', terminals().length ? 'Terminal nueva' : 'Terminal'));
+  add.addEventListener('mousedown', (e) => { e.preventDefault(); if (e.button === 0) openTerminal(); });
+  box.append(add);
+}
+
 api.onTermData((id, d) => {
   const t = termById.get(id);
   if (t && t.xt) t.xt.write(d);

@@ -403,6 +403,12 @@ input:focus { border-color: var(--accent); }
   overflow: hidden;
   text-overflow: ellipsis;
 }
+#terms { flex: none; padding-bottom: 4px; margin-bottom: 4px; border-bottom: 1px solid var(--bg3); }
+#terms .trow { padding-left: 6px; }
+#terms .trow .tw { width: 20px; }
+#terms .trow .tw::before { content: "›_"; font: 10px var(--mono); }
+#terms .trow.new { color: var(--dim); }
+#terms .trow.new .tw::before { content: "+"; font-size: 13px; }
 #tree { flex: 1; overflow: auto; outline: none; padding-bottom: 24px; }
 .tnote { padding: 6px 12px; color: var(--dim); }
 .trow {
