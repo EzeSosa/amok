@@ -1,4 +1,4 @@
-# liviano
+# amok
 
 *[Leer en español](README.md)*
 
@@ -18,39 +18,39 @@ downloads it for you if you don't have it.
 ### Linux (Ubuntu 22.04 and later)
 
 ```
-git clone https://github.com/EzeSosa/liviano.git ~/liviano
-bash ~/liviano/scripts/install-linux.sh
-liviano .
+git clone https://github.com/EzeSosa/amok.git ~/amok
+bash ~/amok/scripts/install-linux.sh
+amok .
 ```
 
 The installer:
 
-- checks git and Node (if you don't have Node 22.12+, it downloads one from nodejs.org just for liviano, no sudo);
+- checks git and Node (if you don't have Node 22.12+, it downloads one from nodejs.org just for amok, no sudo);
 - downloads Electron;
-- builds the integrated terminal's native module (installs `build-essential` if missing; without it liviano still works, just without the terminal);
+- builds the integrated terminal's native module (installs `build-essential` if missing; without it amok still works, just without the terminal);
 - installs any missing system libraries;
 - on Ubuntu 23.10 or later, adds the AppArmor profile Chromium's sandbox needs;
-- creates `~/.local/bin/liviano` and an entry in the applications menu.
+- creates `~/.local/bin/amok` and an entry in the applications menu.
 
 It asks before every step that uses `sudo` (`-y` to skip the questions) and can be undone with `--uninstall`.
 To update: `git pull` and run the installer again.
 
-If it doesn't open: `LIVIANO_FOREGROUND=1 liviano .` shows the errors (in the background they go to `~/.cache/liviano/liviano.log`).
+If it doesn't open: `AMOK_FOREGROUND=1 amok .` shows the errors (in the background they go to `~/.cache/amok/amok.log`).
 
 ### Windows
 
 ```
-git clone https://github.com/EzeSosa/liviano.git C:\Users\<you>\liviano
-cd C:\Users\<you>\liviano
+git clone https://github.com/EzeSosa/amok.git C:\Users\<you>\amok
+cd C:\Users\<you>\amok
 npm install
 ```
 
-Add that folder to your user PATH and open it with `liviano .` (it runs `liviano.cmd`).
+Add that folder to your user PATH and open it with `amok .` (it runs `amok.cmd`).
 Without PATH: `npm start -- C:\path\to\project`.
 
 ## Usage
 
-`liviano <folder>` opens that folder. With no argument it opens the last one you used. Open tabs are remembered per folder.
+`amok <folder>` opens that folder. With no argument it opens the last one you used. Open tabs are remembered per folder.
 
 Documentation (in Spanish): [MANUAL.md](MANUAL.md) (how to use it) and [ATAJOS.md](ATAJOS.md) (every shortcut).
 

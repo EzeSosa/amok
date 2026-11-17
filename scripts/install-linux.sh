@@ -1,27 +1,27 @@
 #!/usr/bin/env bash
-# Instala liviano en Linux. Pensado para Ubuntu 22.04 en adelante (probado en 22.04 y 24.04).
+# Instala amok en Linux. Pensado para Ubuntu 22.04 en adelante (probado en 22.04 y 24.04).
 #
 #   bash scripts/install-linux.sh              instala o actualiza (pregunta antes de usar sudo)
 #   bash scripts/install-linux.sh -y           sin preguntas
 #   bash scripts/install-linux.sh --uninstall  quita el comando, el acceso del menú y el perfil de AppArmor
 #
 # Qué hace:
-#   1. Verifica git y Node.js >= 22.12 (lo pide Electron). Si no está, descarga uno privado en ~/.cache/liviano.
+#   1. Verifica git y Node.js >= 22.12 (lo pide Electron). Si no está, descarga uno privado en ~/.cache/amok.
 #   2. npm ci: instala dependencias y descarga Electron dentro de node_modules/. La terminal integrada
 #      (node-pty) se compila acá: si falta, ofrece instalar build-essential.
 #   3. Instala las bibliotecas del sistema que le falten a Electron (solo en instalaciones mínimas/servidor).
 #   4. Ubuntu 23.10+ bloquea los user namespaces que usa el sandbox de Chromium: agrega un perfil de AppArmor
-#      para este Electron. Si no querés usar sudo, deja el sandbox desactivado para liviano.
-#   5. Crea ~/.local/bin/liviano y el acceso en el menú de aplicaciones.
+#      para este Electron. Si no querés usar sudo, deja el sandbox desactivado para amok.
+#   5. Crea ~/.local/bin/amok y el acceso en el menú de aplicaciones.
 set -euo pipefail
 
 APP_DIR="$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/.." && pwd)"
 ELECTRON="$APP_DIR/node_modules/electron/dist/electron"
 BIN_DIR="$HOME/.local/bin"
-DESKTOP_FILE="${XDG_DATA_HOME:-$HOME/.local/share}/applications/liviano.desktop"
-CONF_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/liviano"
-APPARMOR_PROFILE=/etc/apparmor.d/liviano-electron
-CACHE_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/liviano"
+DESKTOP_FILE="${XDG_DATA_HOME:-$HOME/.local/share}/applications/amok.desktop"
+CONF_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/amok"
+APPARMOR_PROFILE=/etc/apparmor.d/amok-electron
+CACHE_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/amok"
 NODE_MIN=22.12
 NODE_VERSION=22.12.0 # la que se descarga si no hay una adecuada
 
@@ -61,9 +61,9 @@ need_sudo() {
 # ---------- desinstalar ----------
 
 if [[ $UNINSTALL == 1 ]]; then
-  info "Desinstalando liviano"
-  if [[ -L "$BIN_DIR/liviano" && "$(readlink -f "$BIN_DIR/liviano")" == "$APP_DIR/scripts/liviano" ]]; then
-    rm -f "$BIN_DIR/liviano" && ok "Quitado $BIN_DIR/liviano"
+  info "Desinstalando amok"
+  if [[ -L "$BIN_DIR/amok" && "$(readlink -f "$BIN_DIR/amok")" == "$APP_DIR/scripts/amok" ]]; then
+    rm -f "$BIN_DIR/amok" && ok "Quitado $BIN_DIR/amok"
   fi
   [[ -f "$DESKTOP_FILE" ]] && rm -f "$DESKTOP_FILE" && ok "Quitado el acceso del menú"
   rm -f "$CONF_DIR/launcher.env"
@@ -95,7 +95,7 @@ elif [[ "${OS_VER%%.*}" -lt 22 ]]; then
 else
   ok "Ubuntu $OS_VER"
 fi
-[[ $EUID -eq 0 ]] && warn "Estás corriendo como root: liviano quedará instalado para root."
+[[ $EUID -eq 0 ]] && warn "Estás corriendo como root: amok quedará instalado para root."
 
 HAS_APT=0
 command -v apt-get >/dev/null && HAS_APT=1
@@ -109,7 +109,7 @@ apt_install() {
 
 # git
 if ! command -v git >/dev/null; then
-  if ask "Falta git. ¿Instalarlo con apt (usa sudo)?"; then apt_install git; else die "liviano necesita git (búsqueda, árbol y diffs)."; fi
+  if ask "Falta git. ¿Instalarlo con apt (usa sudo)?"; then apt_install git; else die "amok necesita git (búsqueda, árbol y diffs)."; fi
 fi
 ok "git $(git --version | awk '{print $3}')"
 
@@ -148,7 +148,7 @@ fetch_node() {
 
 if ! node_ok; then
   have="$(command -v node >/dev/null && node --version || echo 'no instalado')"
-  if ask "Node.js $have; para instalar hace falta >= $NODE_MIN. ¿Descargar Node $NODE_VERSION solo para liviano (en $CACHE_DIR, sin sudo)?"; then
+  if ask "Node.js $have; para instalar hace falta >= $NODE_MIN. ¿Descargar Node $NODE_VERSION solo para amok (en $CACHE_DIR, sin sudo)?"; then
     fetch_node
   else
     die "Instalá Node >= $NODE_MIN (por ejemplo con fnm o nvm: 'fnm install 22') y volvé a correr este script."
@@ -160,13 +160,13 @@ ok "Node.js $(node --version), npm $(npm --version)"
 # ---------- dependencias de npm y Electron ----------
 
 # node-pty (terminal integrada) no trae binarios para Linux: se compila al instalar.
-# Es opcional: sin compilador, liviano anda igual pero sin terminal.
+# Es opcional: sin compilador, amok anda igual pero sin terminal.
 has_compiler() { command -v make >/dev/null && command -v g++ >/dev/null && command -v python3 >/dev/null; }
 if ! has_compiler; then
   if ask "La terminal integrada necesita compilar un módulo (build-essential, python3). ¿Instalarlos con apt (usa sudo)?"; then
     apt_install build-essential python3
   else
-    warn "Sin compilador: liviano funciona, pero sin terminal integrada."
+    warn "Sin compilador: amok funciona, pero sin terminal integrada."
   fi
 fi
 
@@ -226,11 +226,11 @@ if [[ $USERNS_RESTRICTED == 1 ]]; then
   PROFILE="$ABI
 include <tunables/global>
 
-# Permite a Electron (liviano) crear user namespaces para el sandbox de Chromium.
-profile liviano-electron \"$ELECTRON\" flags=(unconfined) {
+# Permite a Electron (amok) crear user namespaces para el sandbox de Chromium.
+profile amok-electron \"$ELECTRON\" flags=(unconfined) {
   userns,
 
-  include if exists <local/liviano-electron>
+  include if exists <local/amok-electron>
 }"
   if [[ -f "$APPARMOR_PROFILE" ]] && [[ "$(cat "$APPARMOR_PROFILE")" == "$PROFILE" ]]; then
     ok "Perfil de AppArmor ya instalado"
@@ -240,31 +240,37 @@ profile liviano-electron \"$ELECTRON\" flags=(unconfined) {
     $SUDO apparmor_parser -r "$APPARMOR_PROFILE"
     ok "Perfil de AppArmor cargado"
   else
-    echo "LIVIANO_NO_SANDBOX=1" > "$CONF_DIR/launcher.env"
-    warn "Sin perfil: liviano va a correr con --no-sandbox (solo abre archivos locales, pero es menos aislado)."
+    echo "AMOK_NO_SANDBOX=1" > "$CONF_DIR/launcher.env"
+    warn "Sin perfil: amok va a correr con --no-sandbox (solo abre archivos locales, pero es menos aislado)."
   fi
 fi
 
 # ---------- comando y acceso en el menú ----------
 
 info "Creando el comando y el acceso en el menú"
-chmod +x "$APP_DIR/scripts/liviano" "$APP_DIR/scripts/install-linux.sh"
+# Antes se llamaba liviano: quitar el comando y el acceso del menú viejos.
+OLD_BIN="$BIN_DIR/liviano"
+if [[ -L "$OLD_BIN" && "$(readlink "$OLD_BIN")" == */scripts/liviano ]]; then
+  rm -f "$OLD_BIN" && ok "Quitado el comando viejo $OLD_BIN"
+fi
+rm -f "${XDG_DATA_HOME:-$HOME/.local/share}/applications/liviano.desktop"
+chmod +x "$APP_DIR/scripts/amok" "$APP_DIR/scripts/install-linux.sh"
 mkdir -p "$BIN_DIR"
-ln -sfn "$APP_DIR/scripts/liviano" "$BIN_DIR/liviano"
-ok "$BIN_DIR/liviano"
+ln -sfn "$APP_DIR/scripts/amok" "$BIN_DIR/amok"
+ok "$BIN_DIR/amok"
 
 mkdir -p "$(dirname "$DESKTOP_FILE")"
 cat > "$DESKTOP_FILE" <<EOF
 [Desktop Entry]
 Type=Application
-Name=liviano
+Name=amok
 GenericName=Editor de texto
 Comment=Editor de texto mínimo para programar con agentes
-Exec="$APP_DIR/scripts/liviano" %f
-Icon=$APP_DIR/assets/liviano.svg
+Exec="$APP_DIR/scripts/amok" %f
+Icon=$APP_DIR/assets/amok.svg
 Terminal=false
 Categories=Development;TextEditor;
-StartupWMClass=liviano
+StartupWMClass=amok
 EOF
 command -v update-desktop-database >/dev/null && update-desktop-database -q "$(dirname "$DESKTOP_FILE")" 2>/dev/null || true
 ok "$DESKTOP_FILE"
@@ -276,17 +282,17 @@ if [[ "$WATCHES" -gt 0 && "$WATCHES" -lt 524288 ]]; then
   warn "fs.inotify.max_user_watches = $WATCHES. En proyectos grandes puede quedarse corto para vigilar cambios."
   if ask "¿Subirlo a 524288 de forma permanente (usa sudo)?"; then
     need_sudo
-    echo "fs.inotify.max_user_watches=524288" | $SUDO tee /etc/sysctl.d/60-liviano-inotify.conf >/dev/null
+    echo "fs.inotify.max_user_watches=524288" | $SUDO tee /etc/sysctl.d/60-amok-inotify.conf >/dev/null
     $SUDO sysctl -q --system
     ok "max_user_watches = $(cat /proc/sys/fs/inotify/max_user_watches)"
   fi
 fi
 
 echo
-ok "liviano instalado."
+ok "amok instalado."
 if [[ ":$PATH:" != *":$BIN_DIR:"* ]]; then
   warn "$BIN_DIR no está en tu PATH en esta terminal."
   echo "    Ubuntu lo agrega solo al volver a iniciar sesión. Para ahora mismo:  export PATH=\"\$HOME/.local/bin:\$PATH\""
 fi
-echo "    Abrilo con:   liviano .        (o desde el menú de aplicaciones)"
-echo "    Si no abre:   LIVIANO_FOREGROUND=1 liviano .   muestra los errores"
+echo "    Abrilo con:   amok .        (o desde el menú de aplicaciones)"
+echo "    Si no abre:   AMOK_FOREGROUND=1 amok .   muestra los errores"

@@ -26,6 +26,17 @@ let forceClose = false;
 
 const statePath = () => path.join(app.getPath('userData'), 'state.json');
 
+// El editor antes se llamaba "liviano": la primera vez, traer sus sesiones, tema y zoom.
+function migrateOldState() {
+  const now = statePath();
+  if (fs.existsSync(now) || path.basename(app.getPath('userData')) !== 'amok') return;
+  const old = path.join(app.getPath('appData'), 'liviano', 'state.json');
+  try {
+    fs.mkdirSync(path.dirname(now), { recursive: true });
+    fs.copyFileSync(old, now);
+  } catch {}
+}
+
 function readState() {
   try { return JSON.parse(fs.readFileSync(statePath(), 'utf8')); } catch { return {}; }
 }
@@ -145,7 +156,7 @@ function setRoot(dir) {
   startWatcher();
   updateState({ lastRoot: root });
   if (win) {
-    win.setTitle(`${path.basename(root)} — liviano`);
+    win.setTitle(`${path.basename(root)} — amok`);
     win.webContents.send('root:changed', root);
   }
 }
@@ -370,8 +381,8 @@ const terms = new Map();
 let termSeq = 0;
 
 function defaultShell() {
-  if (process.platform === 'win32') return process.env.LIVIANO_SHELL || 'powershell.exe';
-  return process.env.LIVIANO_SHELL || process.env.SHELL || '/bin/bash';
+  if (process.platform === 'win32') return process.env.AMOK_SHELL || 'powershell.exe';
+  return process.env.AMOK_SHELL || process.env.SHELL || '/bin/bash';
 }
 
 ipcMain.handle('term:start', (_e, cols, rows) => {
@@ -381,7 +392,7 @@ ipcMain.handle('term:start', (_e, cols, rows) => {
   } catch (err) {
     const hint = process.platform === 'linux'
       ? 'Instalá un compilador (sudo apt install build-essential) y volvé a correr scripts/install-linux.sh.'
-      : 'Volvé a correr npm install en la carpeta de liviano.';
+      : 'Volvé a correr npm install en la carpeta de amok.';
     return { error: `La terminal no está disponible: node-pty no está instalado o no se pudo compilar.\n${hint}\n(${err.message.split('\n')[0]})` };
   }
   const shell = defaultShell();
@@ -391,7 +402,7 @@ ipcMain.handle('term:start', (_e, cols, rows) => {
       name: 'xterm-256color',
       cols, rows,
       cwd: root || app.getPath('home'),
-      env: { ...process.env, TERM_PROGRAM: 'liviano', COLORTERM: 'truecolor' },
+      env: { ...process.env, TERM_PROGRAM: 'amok', COLORTERM: 'truecolor' },
     });
   } catch (err) {
     return { error: `No se pudo abrir ${shell}: ${err.message}` };
@@ -474,7 +485,7 @@ function createWindow() {
     x: b.x,
     y: b.y,
     backgroundColor: THEME_BG[s.theme] || THEME_BG.oscuro,
-    title: 'liviano',
+    title: 'amok',
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
@@ -508,5 +519,8 @@ function createWindow() {
 }
 
 Menu.setApplicationMenu(null);
-app.whenReady().then(createWindow);
+app.whenReady().then(() => {
+  migrateOldState();
+  createWindow();
+});
 app.on('window-all-closed', () => app.quit());

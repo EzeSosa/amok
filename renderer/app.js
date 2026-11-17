@@ -176,7 +176,7 @@ function updateUI() {
   } else if (warnShown) {
     m.textContent = ''; warnShown = false;
   }
-  document.title = root ? `${active ? (active.title || basename(active.path)) + ' — ' : ''}${root.split(/[\\/]/).pop()} — liviano` : 'liviano';
+  document.title = root ? `${active ? (active.title || basename(active.path)) + ' — ' : ''}${root.split(/[\\/]/).pop()} — amok` : 'amok';
   updatePos();
 }
 

@@ -1,4 +1,4 @@
-# liviano — atajos de teclado
+# amok — atajos de teclado
 
 Referencia completa. En Linux los atajos son los mismos. **Ctrl+Shift+P** abre la lista de comandos por si te olvidás de alguno.
 
@@ -108,7 +108,7 @@ Cada terminal es una pestaña más, a pantalla completa.
 | **Ctrl+V** · **Ctrl+Shift+V** | Pegar |
 | `exit` | Cierra el shell y la pestaña |
 
-Con el foco en la terminal, las demás teclas van al shell (Ctrl+W incluido). Siguen siendo de liviano: Ctrl+J, Ctrl+P,
+Con el foco en la terminal, las demás teclas van al shell (Ctrl+W incluido). Siguen siendo de amok: Ctrl+J, Ctrl+P,
 los atajos con Ctrl+Shift (salvo C y V), Ctrl+Alt+H, Ctrl+Tab, Ctrl+PageUp/PageDown, el zoom, F8 y F12.
 
 ## Paletas (Ctrl+P, Ctrl+Shift+P, Ctrl+Shift+G, Ctrl+G, Ctrl+N)

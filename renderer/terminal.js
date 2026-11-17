@@ -72,7 +72,7 @@ function termFit(t) {
   });
 }
 
-// Con el foco en una terminal, estas teclas siguen siendo de liviano; todas las demás van al shell
+// Con el foco en una terminal, estas teclas siguen siendo de amok; todas las demás van al shell
 // (Ctrl+C, Ctrl+D, Ctrl+R, Ctrl+W, Esc… las necesitan los programas de terminal).
 function termKeepsKey(e) {
   const ctrl = e.ctrlKey || e.metaKey, c = e.code;

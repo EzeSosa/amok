@@ -1,4 +1,4 @@
-# liviano
+# amok
 
 *[Read in English](README.en.md)*
 
@@ -16,39 +16,39 @@ lo descarga solo si no lo tenés.
 ### Linux (Ubuntu 22.04 en adelante)
 
 ```
-git clone https://github.com/EzeSosa/liviano.git ~/liviano
-bash ~/liviano/scripts/install-linux.sh
-liviano .
+git clone https://github.com/EzeSosa/amok.git ~/amok
+bash ~/amok/scripts/install-linux.sh
+amok .
 ```
 
 El instalador:
 
-- verifica git y Node (si no tenés Node 22.12+, descarga uno de nodejs.org solo para liviano, sin sudo);
+- verifica git y Node (si no tenés Node 22.12+, descarga uno de nodejs.org solo para amok, sin sudo);
 - descarga Electron;
-- compila el módulo de la terminal integrada (si falta, instala `build-essential`; sin él, liviano anda igual pero sin terminal);
+- compila el módulo de la terminal integrada (si falta, instala `build-essential`; sin él, amok anda igual pero sin terminal);
 - instala las bibliotecas del sistema que falten;
 - en Ubuntu 23.10 o posterior, agrega el perfil de AppArmor que necesita el sandbox de Chromium;
-- crea `~/.local/bin/liviano` y el acceso en el menú de aplicaciones.
+- crea `~/.local/bin/amok` y el acceso en el menú de aplicaciones.
 
 Pide confirmación antes de cada paso con `sudo` (`-y` para no preguntar) y se deshace con `--uninstall`.
 Para actualizar: `git pull` y volver a correr el instalador.
 
-Si no abre: `LIVIANO_FOREGROUND=1 liviano .` muestra los errores (en segundo plano van a `~/.cache/liviano/liviano.log`).
+Si no abre: `AMOK_FOREGROUND=1 amok .` muestra los errores (en segundo plano van a `~/.cache/amok/amok.log`).
 
 ### Windows
 
 ```
-git clone https://github.com/EzeSosa/liviano.git C:\Users\<vos>\liviano
-cd C:\Users\<vos>\liviano
+git clone https://github.com/EzeSosa/amok.git C:\Users\<vos>\amok
+cd C:\Users\<vos>\amok
 npm install
 ```
 
-Agregá esa carpeta al PATH de tu usuario y abrilo con `liviano .` (usa `liviano.cmd`).
+Agregá esa carpeta al PATH de tu usuario y abrilo con `amok .` (usa `amok.cmd`).
 Sin PATH: `npm start -- C:\ruta\al\proyecto`.
 
 ## Uso
 
-`liviano <carpeta>` abre esa carpeta. Sin argumento abre la última que usaste. Las pestañas abiertas se recuerdan por carpeta.
+`amok <carpeta>` abre esa carpeta. Sin argumento abre la última que usaste. Las pestañas abiertas se recuerdan por carpeta.
 
 Documentación: [MANUAL.md](MANUAL.md) (cómo se usa) y [ATAJOS.md](ATAJOS.md) (todos los atajos).
 

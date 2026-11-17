@@ -1,6 +1,6 @@
 * text=auto
 # Los scripts de Linux tienen que llegar con LF aunque se commiteen desde Windows.
 *.sh text eol=lf
-scripts/liviano text eol=lf
+scripts/amok text eol=lf
 *.cmd text eol=crlf
 *.svg text

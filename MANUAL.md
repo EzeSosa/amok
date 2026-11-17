@@ -1,4 +1,4 @@
-# liviano — manual de uso
+# amok — manual de uso
 
 Editor mínimo para trabajar al lado de un agente: abrís una carpeta, buscás, leés, editás y revisás lo que cambió.
 Colorea Java, Python, TypeScript/JavaScript y shell; no tiene extensiones. Todo se maneja con el teclado.
@@ -13,11 +13,11 @@ Colorea Java, Python, TypeScript/JavaScript y shell; no tiene extensiones. Todo 
 Desde la carpeta del proyecto:
 
 ```
-liviano .
+amok .
 ```
 
 En Linux también aparece en el menú de aplicaciones. Sin el comando instalado: `npm start -- /ruta/al/proyecto`
-desde la carpeta de liviano.
+desde la carpeta de amok.
 
 - Si no le pasás una carpeta, abre la última que usaste y restaura las pestañas que tenías abiertas.
 - **Ctrl+O** abre otra carpeta.
@@ -111,7 +111,7 @@ Los `.md` abren formateados. **Ctrl+E** alterna entre lectura y edición.
 
 ## 8. Cuando el agente toca archivos
 
-liviano vigila la carpeta todo el tiempo:
+amok vigila la carpeta todo el tiempo:
 
 - **Archivo abierto sin cambios tuyos:** se recarga solo y te avisa en la barra de abajo.
 - **Archivo abierto con cambios tuyos sin guardar:** la pestaña se pone amarilla y vos decidís.
@@ -138,14 +138,14 @@ PowerShell en Windows, tu shell (`$SHELL`) en Linux. Es una terminal de verdad: 
 - `exit` cierra la pestaña. Cerrarla con la × también corta el shell (pregunta antes).
   Ctrl+Shift+P → "Terminal: reiniciar" abre un shell nuevo en la misma pestaña.
 - Las pestañas de terminal se recuerdan con el resto: al volver a abrir el proyecto están ahí, con un shell nuevo.
-- Al cerrar liviano se cierran los shells y todo lo que hayas lanzado desde ahí.
+- Al cerrar amok se cierran los shells y todo lo que hayas lanzado desde ahí.
 - Al pasar el mouse por la pestaña ves el título que puso el programa (el agente, la carpeta…).
-- Usa el tema y el tamaño de letra del editor. Otro shell: variable de entorno `LIVIANO_SHELL`
+- Usa el tema y el tamaño de letra del editor. Otro shell: variable de entorno `AMOK_SHELL`
   (por ejemplo `pwsh.exe` o `/usr/bin/zsh`).
 
 ## 10. Flujo típico
 
-1. `liviano .` en la carpeta del proyecto y **Ctrl+J** para abrir una terminal y arrancar el agente.
+1. `amok .` en la carpeta del proyecto y **Ctrl+J** para abrir una terminal y arrancar el agente.
 2. Le pedís algo al agente.
 3. **Ctrl+Shift+D** para ver todo lo que cambió y recorrer los cambios con **F7**.
 4. Ves algo para corregir: doble click en la línea, editás y **Ctrl+S**.
