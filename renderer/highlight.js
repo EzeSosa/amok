@@ -1,5 +1,6 @@
 'use strict';
-// Resaltado de sintaxis mínimo: un tokenizador por regex para Java, Python, TypeScript/JavaScript y shell.
+// Resaltado de sintaxis mínimo: un tokenizador por regex para Java, Python, TypeScript/JavaScript, shell,
+// SQL, Dockerfile y Groovy (Jenkinsfile).
 // Solo distingue comentarios, strings, números, palabras clave, tipos, llamadas, anotaciones y variables.
 
 const words = (s) => new Set(s.split(/\s+/).filter(Boolean));
@@ -80,6 +81,67 @@ const LANGS = {
     builtins: words('echo printf cd pwd read test mkdir rm cp mv ls cat grep sed awk find xargs chmod sudo git npm node'),
     funcAfter: words('function'),
   },
+  sql: {
+    name: 'SQL',
+    re: [
+      ['c', R`--[^\n]*|/\*[\s\S]*?(?:\*/|$)`],
+      ['s', R`'(?:[^']|'')*'?`],
+      ['v', R`(?<!:):[A-Za-z_]\w*|@@?\w+|\$\d+`],
+      ['n', NUM],
+      ['w', R`[A-Za-z_][\w$]*`],
+    ],
+    // SQL no distingue mayúsculas: las listas van en minúscula y se compara con la palabra en minúscula.
+    caseInsensitive: true,
+    keywords: words(`select from where and or not in is null as on join left right inner outer full cross natural using
+      group by order having limit offset fetch first next rows only union all intersect except distinct insert into values
+      update set delete merge matched create alter drop truncate table view index sequence trigger procedure function
+      package body schema database if exists replace begin end declare return returns case when then else loop for while
+      exit commit rollback savepoint grant revoke primary foreign key references unique check default constraint cascade
+      with recursive between like ilike asc desc nulls over partition window returning lateral language execute do`),
+    literals: words('true false null'),
+    builtins: words(`int integer bigint smallint tinyint decimal numeric number float real double precision char varchar
+      varchar2 nvarchar text clob blob boolean bool date time timestamp timestamptz interval uuid json jsonb serial bigserial
+      bytea raw`),
+  },
+  dockerfile: {
+    name: 'Dockerfile',
+    re: [
+      ['c', R`(?<![^\n])[ \t]*#[^\n]*`],
+      ['k', R`(?<![^\n])[ \t]*(?:FROM|RUN|CMD|LABEL|MAINTAINER|EXPOSE|ENV|ADD|COPY|ENTRYPOINT|VOLUME|USER|WORKDIR|ARG|ONBUILD|STOPSIGNAL|HEALTHCHECK|SHELL)\b`],
+      ['s', R`"(?:[^"\\]|\\[\s\S])*"?|'[^'\n]*'?`],
+      ['v', R`\$\{[^}\n]*\}?|\$[A-Za-z_]\w*`],
+      ['a', R`--[A-Za-z][\w-]*`],
+      ['n', R`\b\d+\b`],
+      ['w', R`[A-Za-z_][\w-]*`],
+    ],
+    keywords: words('AS as'),
+    builtins: words('apt-get apk yum dnf pip npm mvn gradle curl wget echo mkdir rm cp mv chmod chown tar git'),
+  },
+  // Jenkinsfile: Groovy con los pasos del pipeline de Jenkins como builtins.
+  groovy: {
+    name: 'Groovy',
+    re: [
+      ['c', C_COMMENT],
+      ['s', R`"""[\s\S]*?(?:"""|$)|'''[\s\S]*?(?:'''|$)|${DQ}|${SQ}`],
+      ['a', R`@[A-Za-z_][\w.]*`],
+      ['n', NUM],
+      ['w', R`[A-Za-z_$][\w$]*`],
+    ],
+    keywords: words(`abstract as assert break case catch class continue def default do else enum extends final finally for
+      if implements import in instanceof interface new package private protected public return static super switch this
+      throw throws trait try var void while`),
+    literals: words('true false null'),
+    builtins: words(`pipeline agent any none label docker dockerfile kubernetes stages stage steps step sh bat powershell pwsh
+      echo script environment options parameters triggers tools post always success failure unstable aborted changed
+      fixed regression cleanup when branch expression allOf anyOf not tag parallel matrix input timeout retry node dir
+      checkout scm git withCredentials withEnv credentials usernamePassword string booleanParam choice text password
+      archiveArtifacts junit stash unstash readFile writeFile fileExists error currentBuild env params build cron
+      pollSCM buildDiscarder logRotator disableConcurrentBuilds skipDefaultCheckout timestamps ansiColor sleep
+      deleteDir cleanWs println`),
+    funcAfter: words('def'),
+    declares: words('class interface enum trait extends implements new'),
+    capTypes: true,
+  },
 };
 
 const EXT_LANG = {
@@ -87,17 +149,32 @@ const EXT_LANG = {
   py: 'python', pyw: 'python',
   ts: 'ts', tsx: 'ts', mts: 'ts', cts: 'ts', js: 'ts', jsx: 'ts', mjs: 'ts', cjs: 'ts',
   sh: 'sh', bash: 'sh', zsh: 'sh',
+  sql: 'sql', ddl: 'sql', pks: 'sql', pkb: 'sql',
+  dockerfile: 'dockerfile', containerfile: 'dockerfile',
+  groovy: 'groovy', gvy: 'groovy', gradle: 'groovy', jenkinsfile: 'groovy',
 };
+
+// Archivos que se reconocen por el nombre: Dockerfile, Dockerfile.dev, Containerfile,
+// Jenkinsfile, Jenkinsfile-deploy, Jenkinsfile.prod…
+const NAME_LANG = [
+  [/^(docker|container)file([.\-_].*)?$/i, 'dockerfile'],
+  [/^jenkinsfile([.\-_].*)?$/i, 'groovy'],
+];
 
 // Nombres que aparecen en los bloques ```lenguaje de Markdown.
 const FENCE_LANG = {
   java: 'java', py: 'python', python: 'python', ts: 'ts', typescript: 'ts', tsx: 'ts',
   js: 'ts', javascript: 'ts', jsx: 'ts', sh: 'sh', bash: 'sh', shell: 'sh', zsh: 'sh',
+  sql: 'sql', dockerfile: 'dockerfile', docker: 'dockerfile', groovy: 'groovy', jenkinsfile: 'groovy', gradle: 'groovy',
 };
 
 function langFor(path) {
-  const m = /\.([^./]+)$/.exec(path);
-  return (m && EXT_LANG[m[1].toLowerCase()]) || null;
+  const base = path.slice(path.lastIndexOf('/') + 1);
+  const m = /\.([^.]+)$/.exec(base);
+  const byExt = m && EXT_LANG[m[1].toLowerCase()];
+  if (byExt) return byExt;
+  for (const [re, lang] of NAME_LANG) if (re.test(base)) return lang;
+  return null;
 }
 
 function compileLang(lang) {
@@ -108,7 +185,8 @@ function compileLang(lang) {
   return lang.rx;
 }
 
-function classifyWord(lang, w, text, end, prev) {
+function classifyWord(lang, word, text, end, prev) {
+  const w = lang.caseInsensitive ? word.toLowerCase() : word;
   if (lang.keywords.has(w)) return 'k';
   if (lang.literals && lang.literals.has(w)) return 'l';
   if (lang.funcAfter && lang.funcAfter.has(prev)) return 'f';
@@ -171,6 +249,6 @@ function hlText(langId, text) {
 
 // Una línea suelta (diffs): sin contexto, así que las líneas internas de un /** ... */ se tratan aparte.
 function hlLine(langId, line) {
-  if ((langId === 'java' || langId === 'ts') && /^\s*\*/.test(line)) return `<span class="x-c">${escHl(line)}</span>`;
+  if ((langId === 'java' || langId === 'ts' || langId === 'groovy' || langId === 'sql') && /^\s*\*/.test(line)) return `<span class="x-c">${escHl(line)}</span>`;
   return hlText(langId, line);
 }

@@ -1,7 +1,7 @@
 # amok — manual de uso
 
 Editor mínimo para trabajar al lado de un agente: abrís una carpeta, buscás, leés, editás y revisás lo que cambió.
-Colorea Java, Python, TypeScript/JavaScript y shell; no tiene extensiones. Todo se maneja con el teclado.
+Colorea Java, Python, TypeScript/JavaScript, shell, SQL, Dockerfile y Jenkinsfile; no tiene extensiones. Todo se maneja con el teclado.
 
 > Tip: **Ctrl+Shift+P** muestra todos los comandos con su atajo. Si te olvidás de algo, empezá por ahí.
 > La lista completa de atajos está en [ATAJOS.md](ATAJOS.md). La instalación (Windows y Linux) está en el [README](README.md).
@@ -76,8 +76,10 @@ El borde derecho del árbol se arrastra para cambiar el ancho.
 
 ## 5. Colores, temas y zoom
 
-- Se colorean `.java`, `.py`, `.ts` y `.sh`, también `.js`/`.tsx`/`.bash`. La barra de abajo muestra el lenguaje.
-  También se colorean los bloques de código de Markdown (` ```java `, ` ```python `, ` ```ts `, ` ```bash `) y las líneas de los diffs.
+- Se colorean `.java`, `.py`, `.ts`, `.sh` y `.sql`, también `.js`/`.tsx`/`.bash`/`.groovy`/`.gradle`. La barra de abajo muestra el lenguaje.
+- Los Dockerfile y Jenkinsfile se reconocen por el nombre, con o sin sufijo: `Dockerfile`, `Dockerfile.dev`,
+  `Containerfile`, `Jenkinsfile`, `Jenkinsfile-deploy`, `Jenkinsfile.prod`…
+- También se colorean los bloques de código de Markdown (` ```java `, ` ```python `, ` ```ts `, ` ```bash `, ` ```sql `, ` ```dockerfile `, ` ```groovy `) y las líneas de los diffs.
 - Los archivos de más de 500 KB se muestran sin color para que el editor siga rápido.
 - **Ctrl+Shift+P → "Cambiar tema"**: Oscuro, Darcula (estilo JetBrains) o Claro.
 - **Ctrl +** / **Ctrl −** / **Ctrl 0**, o **Ctrl + rueda del mouse**: zoom de toda la interfaz (editor, árbol, Markdown, diffs).

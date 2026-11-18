@@ -4,7 +4,7 @@
 
 A minimal text editor for coding alongside AI agents. No extensions, no LSP.
 Electron + one `<textarea>` per tab + `marked` to render `.md` files.
-Highlights Java, Python, TypeScript/JavaScript and shell with a small built-in tokenizer (`renderer/highlight.js`).
+Highlights Java, Python, TypeScript/JavaScript, shell, SQL, Dockerfile and Jenkinsfile (Groovy) with a small built-in tokenizer (`renderer/highlight.js`).
 Integrated terminal (xterm.js + node-pty) as just another full-size tab: Ctrl+J jumps back and forth between your spec and the agent.
 Themes: Oscuro (dark), Darcula and Claro (light). Font: JetBrains Mono (bundled locally via `@fontsource/jetbrains-mono`).
 

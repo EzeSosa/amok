@@ -595,7 +595,7 @@ function replaceRange(ta, from, to, text, selS, selE = selS) {
   ta.setSelectionRange(selS, selE);
 }
 
-const LINE_COMMENT = { java: '//', ts: '//', python: '#', sh: '#' };
+const LINE_COMMENT = { java: '//', ts: '//', python: '#', sh: '#', sql: '--', dockerfile: '#', groovy: '//' };
 // Otros archivos que suelen aparecer en un repo aunque no se coloreen.
 const EXTRA_COMMENT = {
   jsonc: '//', c: '//', h: '//', cpp: '//', cs: '//', go: '//', rs: '//', kt: '//', kts: '//', gradle: '//',
