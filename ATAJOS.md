@@ -107,6 +107,9 @@ Cada terminal es una pestaña más, a pantalla completa. También aparecen arrib
 | **Ctrl+C** con texto seleccionado · **Ctrl+Shift+C** | Copiar |
 | **Ctrl+V** · **Ctrl+Shift+V** | Pegar |
 | `exit` | Cierra el shell y la pestaña |
+| `amok <carpeta>` | Cambia la carpeta de esta ventana sin cerrar pestañas ni terminales (`amok .` = la carpeta actual del shell) |
+| `amok <archivo>` | Abre el archivo en una pestaña |
+| `amok -n [carpeta]` | Abre otra ventana |
 
 Con el foco en la terminal, las demás teclas van al shell (Ctrl+W incluido). Siguen siendo de amok: Ctrl+J, Ctrl+P,
 los atajos con Ctrl+Shift (salvo C y V), Ctrl+Alt+H, Ctrl+Tab, Ctrl+PageUp/PageDown, el zoom, F8 y F12.

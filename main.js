@@ -4,6 +4,9 @@ const path = require('path');
 const fs = require('fs');
 const fsp = fs.promises;
 const { execFile, spawnSync } = require('child_process');
+const net = require('net');
+const os = require('os');
+const crypto = require('crypto');
 
 // Solo se usan si la carpeta no es un repo git (si lo es, manda el .gitignore).
 const IGNORED_DIRS = new Set([
@@ -57,11 +60,17 @@ function toRel(abs) {
   return path.relative(root, abs).split(path.sep).join('/');
 }
 
+// Las rutas son relativas a la carpeta abierta. Pueden quedar afuera (../otra/spec.md) cuando se
+// cambia de carpeta con pestañas abiertas: siguen apuntando al mismo archivo.
 function resolveIn(rel) {
   if (!root) throw new Error('No hay carpeta abierta');
-  const abs = path.resolve(root, rel);
-  if (abs !== root && !abs.startsWith(root + path.sep)) throw new Error('Ruta fuera de la carpeta');
-  return abs;
+  return path.resolve(root, rel);
+}
+
+// Ruta para el renderer: relativa a la carpeta (con /), o absoluta si está en otra unidad.
+function relFor(abs) {
+  const r = path.relative(root, abs);
+  return (path.isAbsolute(r) ? abs : r).split(path.sep).join('/');
 }
 
 // ---------- listado de archivos ----------
@@ -149,7 +158,8 @@ function startWatcher() {
   } catch {}
 }
 
-function setRoot(dir) {
+// keep: cambiar de carpeta sin cerrar pestañas ni terminales. open: archivos a abrir después.
+function setRoot(dir, opt = {}) {
   root = path.resolve(dir);
   fileCache = null;
   gitPrefix = null;
@@ -157,7 +167,7 @@ function setRoot(dir) {
   updateState({ lastRoot: root });
   if (win) {
     win.setTitle(`${path.basename(root)} — amok`);
-    win.webContents.send('root:changed', root);
+    win.webContents.send('root:changed', root, !!opt.keep, (opt.open || []).map(relFor));
   }
 }
 
@@ -173,6 +183,9 @@ ipcMain.handle('folder:open', async () => {
 });
 
 ipcMain.handle('files:list', () => getFiles());
+
+// Al cambiar de carpeta con pestañas abiertas: sus rutas, relativas a la carpeta nueva.
+ipcMain.handle('paths:rebase', (_e, from, paths) => paths.map((p) => relFor(path.resolve(from, p))));
 
 ipcMain.handle('file:read', async (_e, rel) => {
   try {
@@ -402,7 +415,10 @@ ipcMain.handle('term:start', (_e, cols, rows) => {
       name: 'xterm-256color',
       cols, rows,
       cwd: root || app.getPath('home'),
-      env: { ...process.env, TERM_PROGRAM: 'amok', COLORTERM: 'truecolor' },
+      env: {
+        ...process.env, TERM_PROGRAM: 'amok', COLORTERM: 'truecolor',
+        ...(ctl.path ? { AMOK_IPC: ctl.path, AMOK_TOKEN: ctl.token } : {}),
+      },
     });
   } catch (err) {
     return { error: `No se pudo abrir ${shell}: ${err.message}` };
@@ -459,6 +475,66 @@ ipcMain.on('app:close-confirmed', () => {
   forceClose = true;
   if (win) win.close();
 });
+
+// ---------- amok <ruta> desde una terminal de amok ----------
+// Las terminales reciben AMOK_IPC/AMOK_TOKEN; el lanzador (amok.cmd, scripts/amok) los ve y, en vez
+// de abrir otra ventana, le manda las rutas a esta por un pipe/socket local (scripts/amok-send.js).
+
+const ctl = { path: null, token: crypto.randomBytes(16).toString('hex') };
+
+function controlRequest(msg) {
+  if (!msg || msg.token !== ctl.token) return { error: 'pedido no autorizado' };
+  if (!win || win.isDestroyed()) return { error: 'la ventana no está lista' };
+  const paths = Array.isArray(msg.paths) ? msg.paths.filter((p) => typeof p === 'string') : [];
+  let dir = null;
+  const files = [];
+  for (const p of paths) {
+    const abs = path.resolve(p);
+    let st;
+    try { st = fs.statSync(abs); } catch { return { error: `no existe: ${abs}` }; }
+    if (st.isDirectory()) {
+      if (dir && dir !== abs) return { error: 'una sola carpeta por vez' };
+      dir = abs;
+    } else files.push(abs);
+  }
+  if (!dir && !files.length) return { error: 'falta la carpeta o el archivo' };
+  if (!dir && !root) dir = path.dirname(files[0]);
+  if (dir && dir !== root) {
+    setRoot(dir, { keep: true, open: files });
+    return { msg: `amok: carpeta ${root}` };
+  }
+  win.webContents.send('files:open', files.map(relFor));
+  return { msg: files.length ? `amok: abierto ${files.map((f) => path.basename(f)).join(', ')}` : `amok: ya estás en ${root}` };
+}
+
+function startControl() {
+  const name = `amok-${process.pid}-${crypto.randomBytes(4).toString('hex')}`;
+  const p = process.platform === 'win32'
+    ? `\\\\.\\pipe\\${name}`
+    : path.join(process.env.XDG_RUNTIME_DIR || os.tmpdir(), `${name}.sock`);
+  const server = net.createServer((sock) => {
+    let buf = '';
+    sock.setEncoding('utf8');
+    sock.on('error', () => {});
+    sock.on('data', (d) => {
+      buf += d;
+      const nl = buf.indexOf('\n');
+      if (nl < 0) { if (buf.length > 1e6) sock.destroy(); return; }
+      let reply;
+      try { reply = controlRequest(JSON.parse(buf.slice(0, nl))); } catch (err) { reply = { error: err.message }; }
+      sock.end(JSON.stringify(reply) + '\n');
+    });
+  });
+  server.on('error', () => { ctl.path = null; });
+  server.listen(p, () => {
+    if (process.platform !== 'win32') { try { fs.chmodSync(p, 0o600); } catch {} }
+  });
+  ctl.path = p;
+  app.on('will-quit', () => {
+    server.close();
+    if (process.platform !== 'win32') { try { fs.unlinkSync(p); } catch {} }
+  });
+}
 
 // ---------- ventana ----------
 
@@ -521,6 +597,7 @@ function createWindow() {
 Menu.setApplicationMenu(null);
 app.whenReady().then(() => {
   migrateOldState();
+  startControl();
   createWindow();
 });
 app.on('window-all-closed', () => app.quit());

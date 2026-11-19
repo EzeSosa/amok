@@ -26,6 +26,8 @@ contextBridge.exposeInMainWorld('api', {
   onTermData: (cb) => ipcRenderer.on('term:data', (_e, id, d) => cb(id, d)),
   onTermExit: (cb) => ipcRenderer.on('term:exit', (_e, id, code) => cb(id, code)),
   onFsChanged: (cb) => ipcRenderer.on('fs:changed', (_e, changes) => cb(changes)),
-  onRootChanged: (cb) => ipcRenderer.on('root:changed', (_e, r) => cb(r)),
+  rebasePaths: (from, paths) => ipcRenderer.invoke('paths:rebase', from, paths),
+  onRootChanged: (cb) => ipcRenderer.on('root:changed', (_e, r, keep, open) => cb(r, keep, open)),
+  onOpenFiles: (cb) => ipcRenderer.on('files:open', (_e, paths) => cb(paths)),
   onCloseRequest: (cb) => ipcRenderer.on('app:close-request', () => cb()),
 });

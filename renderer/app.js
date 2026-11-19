@@ -112,10 +112,25 @@ function touchRecent(p) {
   recent = [p, ...recent.filter((x) => x !== p)].slice(0, 50);
 }
 
-async function setRoot(r) {
-  if (r === root) return;
-  for (const t of [...tabs]) destroyTab(t);
-  active = null;
+// Archivo fuera de la carpeta abierta (quedó abierto al cambiar de carpeta).
+function outsideRoot(p) {
+  return p.startsWith('../') || /^([a-z]:)?\//i.test(p);
+}
+
+// keep (amok <carpeta> desde una terminal de amok): las pestañas siguen abiertas, con la ruta
+// relativa a la carpeta nueva, y las terminales siguen corriendo. Si no, se carga la sesión guardada.
+async function setRoot(r, keep = false, open = []) {
+  if (r === root) { for (const p of open) await openFile(p); return; }
+  keep = keep && !!root;
+  if (keep) {
+    persist(true);
+    const files = tabs.filter((t) => !t.virtual);
+    const moved = await api.rebasePaths(root, files.map((t) => t.path));
+    files.forEach((t, i) => { t.path = moved[i]; });
+  } else {
+    for (const t of [...tabs]) destroyTab(t);
+    active = null;
+  }
   root = r;
   fileList = null;
   gitStatus = new Map();
@@ -128,13 +143,18 @@ async function setRoot(r) {
   tree.sel = null;
   renderTree();
   if (sess.searchOpts) Object.assign(search.opts, sess.searchOpts);
-  for (const p of sess.tabs || []) {
-    if (p === REVIEW) await openReview({ background: true });
-    else if (p.startsWith(TERM_PREFIX)) openTerminal({ background: true, n: +p.slice(TERM_PREFIX.length) || 1 });
-    else await openFile(p, { background: true, silent: true });
+  if (keep) {
+    revealActiveInTree();
+    persist();
+  } else {
+    for (const p of sess.tabs || []) {
+      if (p === REVIEW) await openReview({ background: true });
+      else if (p.startsWith(TERM_PREFIX)) openTerminal({ background: true, n: +p.slice(TERM_PREFIX.length) || 1 });
+      else await openFile(p, { background: true, silent: true });
+    }
+    const act = tabs.find((t) => t.path === sess.active) || tabs[0];
+    if (act) activate(act);
   }
-  const act = tabs.find((t) => t.path === sess.active) || tabs[0];
-  if (act) activate(act);
   renderTabs();
   updateUI();
   api.listFiles().then((l) => {
@@ -143,6 +163,7 @@ async function setRoot(r) {
     revealActiveInTree();
   });
   refreshGit();
+  for (const p of open) await openFile(p);
 }
 
 // ---------- status ----------
@@ -441,7 +462,7 @@ function renderTabs() {
     const d = el('div', cls);
     d.title = t.tip || t.title || t.path;
     d.append(el('span', null, t.title || basename(t.path)));
-    if (counts[basename(t.path)] > 1) d.append(el('span', 'hint', dirname(t.path)));
+    if (counts[basename(t.path)] > 1 || (!t.virtual && outsideRoot(t.path))) d.append(el('span', 'hint', dirname(t.path)));
     const x = el('span', 'x');
     x.addEventListener('mousedown', (e) => { e.stopPropagation(); e.preventDefault(); closeTab(t); });
     d.append(x);
@@ -796,10 +817,9 @@ function setMode(t, mode) {
   if (t.mode === mode) return;
   const prev = t.mode;
   const from = prev === 'preview' ? t.preview : t.ta;
-  if (prev !== 'diff') {
-    const range = from.scrollHeight - from.clientHeight;
-    t.scrollRatio = range > 0 ? from.scrollTop / range : 0;
-  }
+  // Línea del fuente que está arriba de todo en lo que se ve (para llegar al mismo lugar en el otro modo).
+  if (prev === 'preview') t.topLine = previewTopLine(t);
+  else if (prev === 'edit') t.topLine = t.ta.scrollTop / lineHeight();
   t.mode = mode;
   t.pane.classList.toggle('preview-mode', mode === 'preview');
   t.pane.classList.toggle('diff-mode', mode === 'diff');
@@ -808,12 +828,59 @@ function setMode(t, mode) {
     t.diffview.scrollTop = 0;
     refreshDiffView(t);
   } else {
-    // al volver de edición/lectura se conserva la posición relativa
-    const to = mode === 'preview' ? t.preview : t.ta;
-    to.scrollTop = (t.scrollRatio || 0) * (to.scrollHeight - to.clientHeight);
+    // edición ⇄ lectura: queda a la vista la misma parte del archivo
+    const line = t.topLine || 0;
+    if (mode === 'preview') scrollPreviewToLine(t, line);
+    else {
+      // el cursor va al principio de la línea que se estaba leyendo (no al final del archivo)
+      const n = Math.floor(line + 0.5);
+      const v = t.ta.value;
+      let pos = 0;
+      for (let i = 0; i < n && pos >= 0; i++) pos = v.indexOf('\n', pos) + 1 || -1;
+      if (pos < 0) pos = v.length;
+      t.ta.setSelectionRange(pos, pos);
+      t.ta.scrollTop = line * lineHeight();
+    }
   }
   if (mode === 'edit') { t.gutter.scrollTop = t.ta.scrollTop; renderHl(t); }
   if (t === active) { focusEditor(); updateUI(); }
+}
+
+// Bloques del preview con su línea en el fuente, en orden.
+function previewBlocks(t) {
+  return [...t.preview.querySelectorAll(':scope > [data-line]')];
+}
+
+function previewTopLine(t) {
+  const blocks = previewBlocks(t);
+  const top = t.preview.scrollTop;
+  if (!blocks.length || top <= 0) return 0;
+  const base = t.preview.getBoundingClientRect().top - top;
+  for (let i = 0; i < blocks.length; i++) {
+    const r = blocks[i].getBoundingClientRect();
+    const y = r.top - base, end = i + 1 < blocks.length ? blocks[i + 1].getBoundingClientRect().top - base : y + r.height;
+    if (end > top) {
+      const a = +blocks[i].dataset.line;
+      const b = i + 1 < blocks.length ? +blocks[i + 1].dataset.line : t.ta.value.split('\n').length;
+      const f = end > y ? Math.max(0, Math.min(1, (top - y) / (end - y))) : 0;
+      return a + f * (b - a);
+    }
+  }
+  return +blocks[blocks.length - 1].dataset.line;
+}
+
+function scrollPreviewToLine(t, line) {
+  const blocks = previewBlocks(t);
+  if (!blocks.length || line <= 0) { t.preview.scrollTop = 0; return; }
+  const base = t.preview.getBoundingClientRect().top - t.preview.scrollTop;
+  let i = 0;
+  while (i + 1 < blocks.length && +blocks[i + 1].dataset.line <= line) i++;
+  const a = +blocks[i].dataset.line;
+  const b = i + 1 < blocks.length ? +blocks[i + 1].dataset.line : t.ta.value.split('\n').length;
+  const y = blocks[i].getBoundingClientRect().top - base;
+  const end = i + 1 < blocks.length ? blocks[i + 1].getBoundingClientRect().top - base : y + blocks[i].offsetHeight;
+  const f = b > a ? Math.max(0, Math.min(1, (line - a) / (b - a))) : 0;
+  t.preview.scrollTop = y + f * (end - y);
 }
 
 function toggleMd() {
@@ -822,8 +889,25 @@ function toggleMd() {
   setMode(active, active.mode === 'preview' ? 'edit' : 'preview');
 }
 
+// Se renderiza bloque por bloque para marcar en qué línea del fuente empieza cada uno (data-line):
+// así edición y lectura pueden mostrar la misma parte del archivo.
 function renderPreview(t) {
-  t.preview.innerHTML = marked.parse(t.ta.value, { gfm: true });
+  const tokens = marked.lexer(t.ta.value, { gfm: true });
+  const frag = document.createDocumentFragment();
+  const tmp = document.createElement('div');
+  let line = 0;
+  for (const tok of tokens) {
+    if (tok.type !== 'space' && tok.type !== 'def') {
+      const one = [tok];
+      one.links = tokens.links;
+      tmp.innerHTML = marked.parser(one, { gfm: true });
+      if (tmp.firstElementChild) tmp.firstElementChild.dataset.line = line;
+      frag.append(...tmp.childNodes);
+    }
+    line += (tok.raw.match(/\n/g) || []).length;
+  }
+  t.preview.textContent = '';
+  t.preview.append(frag);
   const dir = dirname(t.path);
   for (const img of t.preview.querySelectorAll('img[src]')) {
     const src = img.getAttribute('src');
@@ -1415,7 +1499,9 @@ api.onCloseRequest(() => {
   api.confirmClose();
 });
 
-api.onRootChanged((r) => setRoot(r));
+api.onRootChanged((r, keep, open) => setRoot(r, keep, open));
+// amok <archivo> desde una terminal de amok.
+api.onOpenFiles(async (paths) => { for (const p of paths) await openFile(p); });
 
 // DOMContentLoaded: después de que carguen diff.js y tree.js.
 window.addEventListener('DOMContentLoaded', async () => {

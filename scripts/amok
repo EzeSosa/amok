@@ -18,6 +18,17 @@ CONF="${XDG_CONFIG_HOME:-$HOME/.config}/amok/launcher.env"
 # shellcheck source=/dev/null
 [[ -r "$CONF" ]] && source "$CONF"
 
+# Dentro de una terminal de amok: cambiar la carpeta de esa ventana (o abrir archivos) en vez de
+# abrir otra. amok -n [carpeta] fuerza una ventana nueva.
+if [[ "${1:-}" == -n || "${1:-}" == --new ]]; then
+  shift
+elif [[ -n "${AMOK_IPC:-}" ]]; then
+  rc=0
+  ELECTRON_RUN_AS_NODE=1 "$ELECTRON" "$APP_DIR/scripts/amok-send.js" "$@" || rc=$?
+  if [[ $rc -ne 3 ]]; then exit "$rc"; fi
+fi
+unset AMOK_IPC AMOK_TOKEN
+
 FLAGS=()
 [[ "${AMOK_NO_SANDBOX:-}" == 1 ]] && FLAGS+=(--no-sandbox)
 

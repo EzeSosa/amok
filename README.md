@@ -6,6 +6,7 @@ Editor de texto mínimo para programar con agentes. Sin extensiones ni LSP.
 Electron + un `<textarea>` por pestaña + `marked` para ver los `.md` formateados.
 Colorea Java, Python, TypeScript/JavaScript, shell, SQL, Dockerfile y Jenkinsfile (Groovy) con un tokenizador propio (`renderer/highlight.js`).
 Terminal integrada (xterm.js + node-pty) como una pestaña más, a pantalla completa: Ctrl+J va y vuelve entre la spec y el agente.
+Desde esa terminal, `amok <carpeta>` cambia la carpeta de la ventana sin cerrar pestañas ni terminales, y `amok <archivo>` abre un archivo.
 Temas: Oscuro, Darcula y Claro (Ctrl+Shift+P → "Cambiar tema"). Fuente: JetBrains Mono (`@fontsource/jetbrains-mono`, local).
 
 ## Instalación

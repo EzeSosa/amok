@@ -89,7 +89,8 @@ El tema y el zoom se recuerdan entre sesiones.
 
 ## 6. Markdown
 
-Los `.md` abren formateados. **Ctrl+E** alterna entre lectura y edición.
+Los `.md` abren formateados. **Ctrl+E** alterna entre lectura y edición, sin moverte de la parte que estabas
+viendo: al pasar a edición, el cursor queda al principio de lo que estabas leyendo (si no bajaste, al principio del archivo).
 
 - En modo lectura, los links a otros `.md` del proyecto se abren en el editor y los links web en el navegador.
 - Si el agente modifica el `.md` mientras lo estás leyendo, se actualiza solo.
@@ -143,6 +144,14 @@ PowerShell en Windows, tu shell (`$SHELL`) en Linux. Es una terminal de verdad: 
 - Al cerrar amok se cierran los shells y todo lo que hayas lanzado desde ahí.
 - Las terminales también aparecen arriba del árbol de archivos: click para ir a una, click del medio para cerrarla,
   "+ Terminal nueva" para abrir otra. Al pasar el mouse ves el título que puso el programa (el agente, la carpeta…).
+- **`amok <carpeta>` desde una terminal de amok** cambia la carpeta de esa misma ventana, sin cerrarla:
+  el árbol, Ctrl+P, la búsqueda, git y las terminales nuevas pasan a la carpeta nueva. Las pestañas abiertas
+  siguen ahí (aunque tengan cambios sin guardar) y las terminales siguen corriendo. Sirve para saltar a un
+  worktree o a un subproyecto: `cd ../otro-worktree` y `amok .`.
+  - Los archivos que quedan fuera de la carpeta muestran la ruta al lado del nombre (`spec.md ..`).
+    Se editan y guardan igual, pero amok no ve si cambian en disco.
+  - `amok <archivo>` lo abre en una pestaña (`amok docs/spec.md`). `amok` solo equivale a `amok .`.
+  - `amok -n [carpeta]` abre una ventana nueva, como desde cualquier otra terminal.
 - Usa el tema y el tamaño de letra del editor. Otro shell: variable de entorno `AMOK_SHELL`
   (por ejemplo `pwsh.exe` o `/usr/bin/zsh`).
 

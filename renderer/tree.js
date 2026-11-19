@@ -102,7 +102,7 @@ function revealInTree(p) {
 }
 
 function revealActiveInTree() {
-  if (active && !active.virtual) revealInTree(active.path);
+  if (active && !active.virtual && !outsideRoot(active.path)) revealInTree(active.path);
   else renderTree();
 }
 
