@@ -142,6 +142,39 @@ const LANGS = {
     declares: words('class interface enum trait extends implements new'),
     capTypes: true,
   },
+  // YAML: claves, valores entre comillas, números/booleanos sueltos, anclas, ${VARIABLES} y {{ plantillas }}.
+  yaml: {
+    name: 'YAML',
+    re: [
+      ['c', R`(?<![^\s])#[^\n]*`],
+      ['o', R`(?<![^\n])(?:---|\.\.\.)(?=\s|$)`],
+      ['k', R`(?<=(?:^|\n)[ \t]*(?:-[ \t]+)*)(?:"[^"\n]*"|'[^'\n]*'|[^\s#'"\-:,\[\]{}&*!|>][^\n:#]*?|-[^\s:][^\n:#]*?)(?=[ \t]*:(?:[ \t]|$|\n))`],
+      ['s', R`"(?:[^"\\\n]|\\.)*"?|'(?:[^'\n]|'')*'?`],
+      ['v', R`\$\{[^}\n]*\}?|\{\{[^}\n]*\}?\}?|[&*][\w-]+`],
+      ['a', R`![\w!/.-]*`],
+      ['l', R`(?<=(?::|-|,|\[)[ \t]+|\[)(?:true|false|True|False|TRUE|FALSE|yes|no|on|off|null|Null|NULL|~)(?=[ \t]*(?:#|,|\]|\}|$|\n))`],
+      ['n', R`(?<=(?::|-|,|\[)[ \t]+|\[)[-+]?(?:0x[\da-fA-F]+|\d[\d_]*(?:\.\d+)?(?:[eE][+-]?\d+)?|\.inf|\.nan)(?=[ \t]*(?:#|,|\]|\}|$|\n))`],
+      ['o', R`(?<=:[ \t]+)[|>][-+]?\d*(?=[ \t]*(?:#|$|\n))`],
+    ],
+    keywords: words(''),
+  },
+  // .conf, .ini, .properties, .env, .toml…: un formato genérico "clave valor". Se colorea la primera
+  // palabra de cada línea (la clave o directiva: nginx, Apache, INI, HOCON), las [secciones], comentarios,
+  // strings, números y variables.
+  conf: {
+    name: 'Config',
+    re: [
+      ['c', R`(?<![^\n])[ \t]*[#;!][^\n]*|(?<=[ \t])#[^\n]*`],
+      ['t', R`(?<![^\n])[ \t]*\[[^\]\n]*\]`],
+      ['k', R`(?<=(?:^|\n)[ \t]*)[A-Za-z_@][\w.\-@]*`],
+      ['s', R`"(?:[^"\\\n]|\\.)*"?|'[^'\n]*'?`],
+      ['v', R`\$\{[^}\n]*\}?|\$[A-Za-z_]\w*|%\{[^}\n]*\}?|@\{[^}\n]*\}?`],
+      ['n', R`\b\d+(?:\.\d+)*[kKmMgGsShHdD]?\b`],
+      ['w', R`[A-Za-z_][\w-]*`],
+    ],
+    keywords: words(''),
+    literals: words('true false on off yes no null none True False TRUE FALSE ON OFF'),
+  },
 };
 
 const EXT_LANG = {
@@ -152,13 +185,17 @@ const EXT_LANG = {
   sql: 'sql', ddl: 'sql', pks: 'sql', pkb: 'sql',
   dockerfile: 'dockerfile', containerfile: 'dockerfile',
   groovy: 'groovy', gvy: 'groovy', gradle: 'groovy', jenkinsfile: 'groovy',
+  yml: 'yaml', yaml: 'yaml',
+  conf: 'conf', cfg: 'conf', cnf: 'conf', ini: 'conf', properties: 'conf', env: 'conf', toml: 'conf',
 };
 
 // Archivos que se reconocen por el nombre: Dockerfile, Dockerfile.dev, Containerfile,
-// Jenkinsfile, Jenkinsfile-deploy, Jenkinsfile.prod…
+// Jenkinsfile, Jenkinsfile-deploy, Jenkinsfile.prod, .env.local…
 const NAME_LANG = [
   [/^(docker|container)file([.\-_].*)?$/i, 'dockerfile'],
   [/^jenkinsfile([.\-_].*)?$/i, 'groovy'],
+  [/^\.env(\..*)?$/i, 'conf'],
+  [/^\.(gitconfig|editorconfig|npmrc|curlrc|wgetrc)$/i, 'conf'],
 ];
 
 // Nombres que aparecen en los bloques ```lenguaje de Markdown.
@@ -166,6 +203,7 @@ const FENCE_LANG = {
   java: 'java', py: 'python', python: 'python', ts: 'ts', typescript: 'ts', tsx: 'ts',
   js: 'ts', javascript: 'ts', jsx: 'ts', sh: 'sh', bash: 'sh', shell: 'sh', zsh: 'sh',
   sql: 'sql', dockerfile: 'dockerfile', docker: 'dockerfile', groovy: 'groovy', jenkinsfile: 'groovy', gradle: 'groovy',
+  yaml: 'yaml', yml: 'yaml', conf: 'conf', ini: 'conf', properties: 'conf', toml: 'conf', nginx: 'conf', env: 'conf',
 };
 
 function langFor(path) {

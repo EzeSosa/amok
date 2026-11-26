@@ -4,7 +4,7 @@
 
 Editor de texto mínimo para programar con agentes. Sin extensiones ni LSP.
 Electron + un `<textarea>` por pestaña + `marked` para ver los `.md` formateados.
-Colorea Java, Python, TypeScript/JavaScript, shell, SQL, Dockerfile y Jenkinsfile (Groovy) con un tokenizador propio (`renderer/highlight.js`).
+Colorea Java, Python, TypeScript/JavaScript, shell, SQL, YAML, Dockerfile, Jenkinsfile (Groovy) y archivos de configuración (`.conf`, `.properties`, `.ini`, `.env`…) con un tokenizador propio (`renderer/highlight.js`).
 Terminal integrada (xterm.js + node-pty) como una pestaña más, a pantalla completa: Ctrl+J va y vuelve entre la spec y el agente.
 Desde esa terminal, `amok <carpeta>` cambia la carpeta de la ventana sin cerrar pestañas ni terminales, y `amok <archivo>` abre un archivo.
 Temas: Oscuro, Darcula y Claro (Ctrl+Shift+P → "Cambiar tema"). Fuente: JetBrains Mono (`@fontsource/jetbrains-mono`, local).
@@ -70,7 +70,8 @@ Documentación: [MANUAL.md](MANUAL.md) (cómo se usa) y [ATAJOS.md](ATAJOS.md) (
 | Ctrl+W · Ctrl+Tab | Cerrar pestaña · Cambiar pestaña |
 | Ctrl+Shift+R | Recargar del disco descartando cambios |
 | Ctrl+O | Abrir carpeta |
-| Ctrl+B · Ctrl+Shift+E | Mostrar/ocultar el árbol · Ir al árbol revelando el archivo actual |
+| Ctrl+B · Ctrl+Shift+E | Mostrar/ocultar el árbol (también Alt+1) · Ir al árbol revelando el archivo actual |
+| F3 · Ctrl+Click · Alt+← | Java/TS: ir a la definición · Volver |
 | Ctrl+J · Ctrl+Shift+J | Terminal ⇄ último archivo · Terminal nueva (cada terminal es una pestaña) |
 | Ctrl+D | Diff del archivo actual contra HEAD (solo lectura; de nuevo vuelve a editar) |
 | Ctrl+Shift+D | Pestaña "Cambios": diff de todo el repo contra HEAD, incluidos archivos nuevos |

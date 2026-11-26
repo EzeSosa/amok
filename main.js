@@ -279,6 +279,40 @@ ipcMain.handle('search', async (_e, query, opts) => {
   return { results, total, truncated, scanned: list.length };
 });
 
+// Ir a la definición: líneas de los archivos con esas extensiones que coinciden con la regex de
+// declaración. Aparte de 'search' para no cancelar ni ser cancelada por la búsqueda del usuario.
+ipcMain.handle('defs:find', async (_e, src, exts, name) => {
+  let re, nameRe;
+  try {
+    re = new RegExp(src);
+    nameRe = new RegExp(`(?<![\\w$])${name.replace(/[$]/g, '\\$')}(?![\\w$])`);
+  } catch (err) { return { error: err.message }; }
+  const list = (await getFiles()).filter((rel) => exts.includes(path.extname(rel).slice(1).toLowerCase()));
+  const out = [];
+  for (let i = 0; i < list.length && out.length < 200; i += 64) {
+    const slice = list.slice(i, i + 64);
+    const texts = await Promise.all(slice.map(async (rel) => {
+      try {
+        const abs = path.join(root, rel);
+        if ((await fsp.stat(abs)).size > MAX_SEARCH_FILE_SIZE) return null;
+        const s = await fsp.readFile(abs, 'utf8');
+        return s.includes(name) ? s : null;
+      } catch { return null; }
+    }));
+    for (let j = 0; j < slice.length; j++) {
+      if (!texts[j]) continue;
+      const lines = texts[j].split(/\r?\n/);
+      for (let ln = 0; ln < lines.length && out.length < 200; ln++) {
+        const m = re.exec(lines[ln]);
+        if (!m) continue;
+        const n = nameRe.exec(lines[ln].slice(m.index));
+        out.push({ file: slice[j], line: ln + 1, col: n ? m.index + n.index : m.index, len: name.length, text: lines[ln].trim().slice(0, 200) });
+      }
+    }
+  }
+  return { results: out };
+});
+
 // ---------- git ----------
 
 const EMPTY_TREE = '4b825dc642cb6eb9a060e54bf8d69288fbee4904';

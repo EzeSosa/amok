@@ -4,7 +4,7 @@
 
 A minimal text editor for coding alongside AI agents. No extensions, no LSP.
 Electron + one `<textarea>` per tab + `marked` to render `.md` files.
-Highlights Java, Python, TypeScript/JavaScript, shell, SQL, Dockerfile and Jenkinsfile (Groovy) with a small built-in tokenizer (`renderer/highlight.js`).
+Highlights Java, Python, TypeScript/JavaScript, shell, SQL, YAML, Dockerfile, Jenkinsfile (Groovy) and config files (`.conf`, `.properties`, `.ini`, `.env`…) with a small built-in tokenizer (`renderer/highlight.js`).
 Integrated terminal (xterm.js + node-pty) as just another full-size tab: Ctrl+J jumps back and forth between your spec and the agent.
 From that terminal, `amok <folder>` switches the window's folder without closing tabs or terminals, and `amok <file>` opens a file.
 Themes: Oscuro (dark), Darcula and Claro (light). Font: JetBrains Mono (bundled locally via `@fontsource/jetbrains-mono`).
@@ -72,7 +72,8 @@ Documentation (in Spanish): [MANUAL.md](MANUAL.md) (how to use it) and [ATAJOS.m
 | Ctrl+W · Ctrl+Tab | Close tab · Switch tab |
 | Ctrl+Shift+R | Reload from disk, discarding changes |
 | Ctrl+O | Open folder |
-| Ctrl+B · Ctrl+Shift+E | Show/hide the file tree · Focus the tree, revealing the current file |
+| Ctrl+B · Ctrl+Shift+E | Show/hide the file tree (also Alt+1) · Focus the tree, revealing the current file |
+| F3 · Ctrl+Click · Alt+← | Java/TS: go to definition · Go back |
 | Ctrl+J · Ctrl+Shift+J | Terminal ⇄ last file · New terminal (each terminal is a tab) |
 | Ctrl+D | Diff of the current file against HEAD (read-only; press again to go back to editing) |
 | Ctrl+Shift+D | "Cambios" tab: diff of the whole repo against HEAD, including new files |

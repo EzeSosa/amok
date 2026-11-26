@@ -359,6 +359,7 @@ function makeTab(path, data) {
   });
   ta.addEventListener('scroll', () => { gutter.scrollTop = ta.scrollTop; positionMark(t); renderHl(t); });
   ta.addEventListener('keydown', (e) => editorKey(e, t));
+  ta.addEventListener('click', (e) => { if ((e.ctrlKey || e.metaKey) && !e.shiftKey && canGoToDef(t)) goToDefinition(t); });
   for (const ev of ['keyup', 'mouseup', 'focus']) ta.addEventListener(ev, updatePos);
   preview.addEventListener('click', (e) => previewClick(e, t));
   refreshGutter(t);
@@ -616,7 +617,7 @@ function replaceRange(ta, from, to, text, selS, selE = selS) {
   ta.setSelectionRange(selS, selE);
 }
 
-const LINE_COMMENT = { java: '//', ts: '//', python: '#', sh: '#', sql: '--', dockerfile: '#', groovy: '//' };
+const LINE_COMMENT = { java: '//', ts: '//', python: '#', sh: '#', sql: '--', dockerfile: '#', groovy: '//', yaml: '#', conf: '#' };
 // Otros archivos que suelen aparecer en un repo aunque no se coloreen.
 const EXTRA_COMMENT = {
   jsonc: '//', c: '//', h: '//', cpp: '//', cs: '//', go: '//', rs: '//', kt: '//', kts: '//', gradle: '//',
@@ -1391,7 +1392,10 @@ const COMMANDS = [
   ['Línea: seleccionar', 'Ctrl+L', () => lineOp('select')],
   ['Comentar / descomentar líneas', 'Ctrl+/', () => lineOp('comment')],
   ['Markdown: lectura / edición', 'Ctrl+E', toggleMd],
-  ['Árbol de archivos: mostrar / ocultar', 'Ctrl+B', () => toggleTree()],
+  ['Árbol de archivos: mostrar / ocultar', 'Ctrl+B · Alt+1', () => toggleTree()],
+  ['Ir a la definición', 'F3 · Ctrl+Click (Java/TS)', () => goToDefinition()],
+  ['Volver (después de ir a una definición)', 'Alt+←', () => navGo(-1)],
+  ['Avanzar', 'Alt+→', () => navGo(1)],
   ['Ir al árbol (revelar archivo actual)', 'Ctrl+Shift+E', () => focusTree()],
   ['Terminal: ir / volver al archivo', 'Ctrl+J', () => toggleTerminal()],
   ['Terminal nueva', 'Ctrl+Shift+J', () => openTerminal()],
@@ -1453,7 +1457,10 @@ window.addEventListener('keydown', (e) => {
 
   if (termFocused() && !termKeepsKey(e)) return; // el resto de las teclas son del shell
 
+  const arrow = e.key === 'ArrowLeft' ? -1 : e.key === 'ArrowRight' ? 1 : 0;
   if (ctrl && alt && !shift && c === 'KeyH') openSearch();
+  else if (arrow && alt && !shift && document.activeElement !== $('#tree')) navGo(arrow); // Alt+←→ (VS Code) o Ctrl+Alt+←→ (IntelliJ)
+  else if (alt && !ctrl && !shift && c === 'Digit1') toggleTree();
   else if (alt) handled = false; // no interferir con AltGr
   else if (ctrl && shift && c === 'KeyF') openSearch();
   else if (ctrl && shift && c === 'KeyP') openCommands();
@@ -1465,6 +1472,7 @@ window.addEventListener('keydown', (e) => {
   else if (ctrl && !shift && c === 'KeyJ') toggleTerminal();
   else if (ctrl && shift && c === 'KeyJ') openTerminal();
   else if (ctrl && !shift && c === 'KeyB') toggleTree();
+  else if (!ctrl && !shift && e.key === 'F3') goToDefinition(); // como "Open Declaration" de Eclipse
   else if (ctrl && !shift && c === 'KeyD') toggleDiff();
   else if (!ctrl && e.key === 'F7') diffNavActive(shift ? -1 : 1);
   else if (ctrl && !shift && c === 'KeyP') openFilePalette();

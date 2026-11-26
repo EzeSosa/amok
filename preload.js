@@ -9,6 +9,7 @@ contextBridge.exposeInMainWorld('api', {
   writeFile: (rel, content, eol, bom) => ipcRenderer.invoke('file:write', rel, content, eol, bom),
   exists: (rel) => ipcRenderer.invoke('file:exists', rel),
   search: (query, opts) => ipcRenderer.invoke('search', query, opts),
+  findDecl: (src, exts, name) => ipcRenderer.invoke('defs:find', src, exts, name),
   gitStatus: () => ipcRenderer.invoke('git:status'),
   gitDiff: (rel) => ipcRenderer.invoke('git:diff', rel),
   onGitChanged: (cb) => ipcRenderer.on('git:changed', () => cb()),

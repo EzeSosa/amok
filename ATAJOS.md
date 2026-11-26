@@ -32,7 +32,7 @@ Referencia completa. En Linux los atajos son los mismos. **Ctrl+Shift+P** abre l
 
 | Atajo | Acción |
 |---|---|
-| **Ctrl+B** | Mostrar / ocultar el árbol |
+| **Ctrl+B** · **Alt+1** | Mostrar / ocultar el árbol |
 | **Ctrl+Shift+E** | Ir al árbol, con el archivo actual seleccionado |
 | **↑** / **↓** | Moverse |
 | **PageUp** / **PageDown** / **Home** / **End** | Moverse de a saltos / al principio / al final |
@@ -56,6 +56,14 @@ Referencia completa. En Linux los atajos son los mismos. **Ctrl+Shift+P** abre l
 | **Ctrl+F** | Buscar en el archivo actual |
 | **Enter** / **Shift+Enter** en Ctrl+F | Coincidencia siguiente / anterior |
 | **Ctrl+G** | Ir a una línea |
+
+## Ir a la definición (Java, TypeScript/JavaScript)
+
+| Atajo | Acción |
+|---|---|
+| **F3** · **Ctrl+Click** | Ir a la definición de lo que está bajo el cursor (si hay varias, elegir de una lista) |
+| **Alt+←** · **Ctrl+Alt+←** | Volver a donde estabas |
+| **Alt+→** · **Ctrl+Alt+→** | Avanzar |
 
 ## Edición
 
